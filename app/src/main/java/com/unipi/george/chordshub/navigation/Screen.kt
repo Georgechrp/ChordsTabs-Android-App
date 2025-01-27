@@ -1,7 +1,12 @@
 package com.unipi.george.chordshub.navigation
 
+
+
 sealed class Screen(val route: String) {
-    object Home : Screen("home")
-    object Profile : Screen("profile")
-    object Settings : Screen("settings")
+    data object Home : Screen("Home")
+    data object Profile : Screen("Profile")
+    data object Settings : Screen("Settings")
+    data object Login : Screen("Login")
+    data object SignUp : Screen("SignUp")
+
 }

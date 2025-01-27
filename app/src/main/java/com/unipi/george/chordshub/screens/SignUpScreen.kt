@@ -1,5 +1,6 @@
 package com.unipi.george.chordshub.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,21 +18,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import com.unipi.george.chordshub.R
+import com.unipi.george.chordshub.navigation.Screen
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.saveUserToFirestore
 
 @Composable
 fun SignUpScreen(navController: NavController) {
-    // Καταστάσεις για τα πεδία
     val fullName = remember { mutableStateOf("") }
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val confirmPassword = remember { mutableStateOf("") }
     val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,23 +43,20 @@ fun SignUpScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Πεδίο Full Name
         TextField(
             value = fullName.value,
             onValueChange = { fullName.value = it },
-            label = { Text("Full Name") }
+            label = { Text(stringResource(R.string.full_name)) }
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Πεδίο Email
         TextField(
             value = email.value,
             onValueChange = { email.value = it },
-            label = { Text("Email") }
+            label = { Text(stringResource(R.string.email)) }
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Πεδίο Password
         TextField(
             value = password.value,
             onValueChange = { password.value = it },
@@ -64,7 +65,7 @@ fun SignUpScreen(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Πεδίο Confirm Password
+
         TextField(
             value = confirmPassword.value,
             onValueChange = { confirmPassword.value = it },
@@ -73,15 +74,14 @@ fun SignUpScreen(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Κουμπί Create Account
         Button(onClick = {
             if (fullName.value.isBlank() || email.value.isBlank() || password.value.isBlank() || confirmPassword.value.isBlank()) {
-                Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.please_fill_fields), Toast.LENGTH_SHORT).show()
                 return@Button
             }
 
             if (password.value != confirmPassword.value) {
-                Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.passwords_do_not_match), Toast.LENGTH_SHORT).show()
                 return@Button
             }
 
@@ -91,28 +91,30 @@ fun SignUpScreen(navController: NavController) {
                     if (uid != null) {
                         saveUserToFirestore(uid, fullName.value, email.value, "user") { firestoreSuccess ->
                             if (firestoreSuccess) {
-                                Toast.makeText(context, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                                navController.navigate("Login")
+                                Toast.makeText(context, context.getString(R.string.account_created_successfully), Toast.LENGTH_SHORT).show()
+                                navController.navigate(Screen.Login.route)
                             } else {
-                                Toast.makeText(context, "Failed to save user role", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.failed_to_save_user_role), Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
                 } else {
-                    Toast.makeText(context, errorMessage ?: "Sign-up failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, errorMessage ?: context.getString(R.string.sign_up_failed), Toast.LENGTH_SHORT).show()
                 }
             }
-
         }) {
-            Text("Create Account")
+            Text(stringResource(R.string.create_account))
+
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Κουμπί πλοήγησης στο Login
         TextButton(onClick = {
-            navController.navigate("Login")
+            Log.d("SignUpScreen", "Navigating to Login: ${Screen.Login.route}")
+
+            navController.navigate(Screen.Login.route)
         }) {
-            Text("Already have an account? Sign In")
+            Text(stringResource(R.string.already_have_account))
+
         }
     }
 }

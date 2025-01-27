@@ -1,32 +1,56 @@
 package com.unipi.george.chordshub
 
+
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedIn
+import com.unipi.george.chordshub.navigation.BottomNavigationBar
+import com.unipi.george.chordshub.navigation.Screen
+import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.screens.HomeScreen
 import com.unipi.george.chordshub.screens.LoginScreen
+import com.unipi.george.chordshub.screens.ProfileScreen
+import com.unipi.george.chordshub.screens.SettingsScreen
 import com.unipi.george.chordshub.screens.SignUpScreen
 import com.unipi.george.chordshub.ui.theme.ChordsHubTheme
 
@@ -35,14 +59,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ChordsHubTheme {
-                //SongScreen()
                 val navController = rememberNavController()
-                val startDestination = if (isUserLoggedIn()) "Home" else "Login"
+                val isUserLoggedInState = AuthRepository.isUserLoggedInState
+                val fullNameState = AuthRepository.fullNameState
 
-                NavHost(navController = navController, startDestination = startDestination) {
-                    composable("Login") { LoginScreen(navController) }
-                    composable("SignUp") { SignUpScreen(navController) }
-                    composable("Home") { HomeScreen(navController) }
+                if (isUserLoggedInState.value) {
+                    //Log.d("MainActivity", "isUserLoggedIn: ${isUserLoggedInState.value}")
+                    LoggedInScaffold(navController, fullNameState, isUserLoggedInState)
+                } else {
+                    //Log.d("MainActivity", "User is NOT logged in. Navigating to LoggedOutNavHost.")
+                    LoggedOutNavHost(navController, isUserLoggedInState, fullNameState)
                 }
             }
         }
@@ -50,91 +76,118 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SongScreen() {
-    val lyrics = listOf(
-        LyricLine(
-            line = "Στο θολωμένο μου μυαλό",
-            chords = listOf(
-                ChordPosition(chord = "Am", position = 5),
-                ChordPosition(chord = "C", position = 17)
-            )
-        ),
-        LyricLine(
-            line = "ο κόσμος είναι μια σταλιά",
-            chords = listOf(
-                ChordPosition(chord = "Dm", position = 0),
-                ChordPosition(chord = "E", position = 16),
-                ChordPosition(chord = "Am", position = 20)
-            )
-        )
-    )
-
-    val context = LocalContext.current
-
-    LyricsWithChords(
-        lyrics = lyrics,
-        onChordClick = { chord ->
-            Toast.makeText(context, "Κλικ στη συγχορδία: $chord", Toast.LENGTH_SHORT).show()
-        }
-    )
-}
-
-@Composable
-fun LyricsWithChords(
-    lyrics: List<LyricLine>,
-    onChordClick: (String) -> Unit
+fun LoggedInScaffold(
+    navController: NavHostController,
+    fullNameState: MutableState<String?>,
+    isUserLoggedInState: MutableState<Boolean>
 ) {
-    LazyColumn {
-        items(lyrics) { line ->
-            Box(modifier = Modifier.padding(8.dp)) {
-                TextWithChords(line = line, onChordClick = onChordClick)
+    Scaffold(
+        topBar = {
+            val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+            Log.d("LoggedInScaffold", "Current route: ${navController.currentBackStackEntryAsState().value?.destination?.route}")
+
+            TopBar(
+                fullName = fullNameState.value ?: "User",
+                painter = painterResource(id = R.drawable.user_icon),
+                navController = navController,
+                isVisible = currentRoute != "Login" && currentRoute != "SignUp"
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(navController)
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Home.route) {
+                HomeScreen(navController)
+            }
+            composable(Screen.Profile.route) {
+                ProfileScreen(navController)
+            }
+            composable(Screen.Settings.route) {
+                SettingsScreen(
+                    navController,
+                    onLogout = {
+                        isUserLoggedInState.value = false
+                        fullNameState.value = null
+                        AuthRepository.logoutUser()
+                    }
+                )
             }
         }
     }
 }
 
+
 @Composable
-fun TextWithChords(
-    line: LyricLine,
-    onChordClick: (String) -> Unit
+fun LoggedOutNavHost(
+    navController: NavHostController,
+    isUserLoggedInState: MutableState<Boolean>,
+    fullNameState: MutableState<String?>
 ) {
-    Box(modifier = Modifier.padding(8.dp) ) {
-        // Εμφάνιση Στίχων
-        Text(
-            text = line.line,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.align(Alignment.CenterStart)
-        )
-
-        // Εμφάνιση Συγχορδιών
-        line.chords.forEach { chord ->
-            val chordOffset: Dp = with(LocalDensity.current) {
-                val textBeforeChord = line.line.substring(0, chord.position)
-                val textWidth = MaterialTheme.typography.bodyLarge.fontSize.toPx() * textBeforeChord.length * 0.6f
-                textWidth.toDp()
+    NavHost(
+        navController = navController,
+        startDestination = "Login"
+    ) {
+        composable("Login") {
+            LoginScreen(navController) {
+                isUserLoggedInState.value = true
+                fullNameState.value = AuthRepository.getFullName()
             }
+        }
+        composable("SignUp") {
+            SignUpScreen(navController)
+        }
+    }
+}
 
+
+
+@Composable
+fun TopBar(
+    fullName: String,
+    painter: Painter,
+    navController: NavController,
+    isVisible: Boolean
+) {
+    if (isVisible) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
-                text = chord.chord,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = Color.Red,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                ),
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .offset(x = chordOffset, y = (-20).dp) // Τοποθέτηση πάνω από τον στίχο
-                    .clickable { onChordClick(chord.chord) }
+                text = stringResource(R.string.hello_user, fullName),
+                style = MaterialTheme.typography.bodyLarge
             )
+
+            CircularImageView(painter = painter, onClick = {
+                //Log.d("TopBar", "Navigating to route: ${Screen.Slide.route}")
+                //navController.navigate(Screen.Slide.route)
+            })
         }
+    } else {
+        Spacer(modifier = Modifier.height(0.dp))
     }
 }
 
-data class LyricLine(
-    val line: String,
-    val chords: List<ChordPosition>
-)
 
-data class ChordPosition(
-    val chord: String,
-    val position: Int
-)
+
+@Composable
+fun CircularImageView(painter: Painter, onClick: () -> Unit) {
+    Image(
+        painter = painter,
+        stringResource(R.string.circular_image_description),
+        modifier = Modifier
+            .size(50.dp) // Προσαρμόζεις το μέγεθος της εικόνας
+            .clip(CircleShape) // Στρογγυλό σχήμα
+            .border(2.dp, Color.Gray, CircleShape)
+            .clickable { onClick() }
+    )
+}

@@ -1,3 +1,45 @@
 <resources>
     <string name="app_name">ChordsHub</string>
+
+    <!--                   LoginScreen                    -->
+    <!-- Labels for input fields -->
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+
+    <!-- Buttons -->
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="dont_have_account">Don\'t have an account? Sign Up</string>
+
+    <!-- Toast messages -->
+    <string name="please_fill_fields">Please fill in all fields</string>
+    <string name="login_failed">Login failed</string>
+
+
+    <!--                  SignUpScreen                   -->
+    <!-- Labels for input fields -->
+    <string name="full_name">Full Name</string>
+    <string name="confirm_password">Confirm Password</string>
+
+    <!-- Buttons -->
+    <string name="create_account">Create Account</string>
+    <string name="already_have_account">Already have an account? Sign In</string>
+
+    <!-- Toast messages -->
+    <string name="passwords_do_not_match">Passwords do not match</string>
+    <string name="account_created_successfully">Account created successfully!</string>
+    <string name="failed_to_save_user_role">Failed to save user role</string>
+    <string name="sign_up_failed">Sign-up failed</string>
+
+    <!--                 MainActivity                  -->
+    <!-- TopBar -->
+    <string name="hello_user">Hello, %1$s</string>
+    <string name="default_user">User</string>
+
+    <!-- Circular Image View -->
+    <string name="circular_image_description">Circular Image</string>
+
+
+
+
 </resources>

@@ -1,5 +1,6 @@
 package com.unipi.george.chordshub.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,17 +18,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.unipi.george.chordshub.R
+import com.unipi.george.chordshub.navigation.Screen
 import com.unipi.george.chordshub.repository.AuthRepository
+import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
 
 @Composable
-fun LoginScreen(navController: NavController) {
-    // Κατάσταση για τα πεδία
+fun LoginScreen(navController: NavController, onLoginSuccess: () -> Unit) {
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -37,43 +42,44 @@ fun LoginScreen(navController: NavController) {
     ) {
         TextField(
             value = email.value,
-            onValueChange = { email.value = it }, // Ενημέρωση της κατάστασης
-            label = { Text("Email") }
+            onValueChange = { email.value = it },
+            label = { Text(stringResource(R.string.email)) }
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = password.value,
-            onValueChange = { password.value = it }, // Ενημέρωση της κατάστασης
-            label = { Text("Password") },
+            onValueChange = { password.value = it },
+            label = { Text(stringResource(R.string.password)) },
             visualTransformation = PasswordVisualTransformation()
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
             if (email.value.isBlank() || password.value.isBlank()) {
-                Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.please_fill_fields), Toast.LENGTH_SHORT).show()
                 return@Button
             }
 
             AuthRepository.signInUser(email.value, password.value) { success, errorMessage ->
                 if (success) {
-                    navController.navigate("Home"){
-                        popUpTo("Login") { inclusive = true } // Αφαιρεί τη LoginScreen από τη στοίβα
-                    }
-                    Toast.makeText(context,  "Welcome", Toast.LENGTH_SHORT).show()
+                    Log.d("LoginScreen", "Login successful. Navigating to Home: ${Screen.Home.route}")
+                    onLoginSuccess()
+                    isUserLoggedInState.value = true
+                    Log.d("Navigation", "Navigating to: ${Screen.Home.route}")
                 } else {
-                    Toast.makeText(context, errorMessage ?: "Login failed", Toast.LENGTH_SHORT).show()
+                    Log.d("LoginScreen", "Login failed: $errorMessage")
+                    Toast.makeText(context, errorMessage ?: context.getString(R.string.login_failed), Toast.LENGTH_SHORT).show()
                 }
             }
 
-
         }) {
-            Text("Sign In")
+            Text(stringResource(R.string.sign_in))
         }
         Spacer(modifier = Modifier.height(8.dp))
         TextButton(onClick = {
-            navController.navigate("SignUp")
+            navController.navigate(Screen.SignUp.route)
         }) {
-            Text("Don't have an account? Sign Up")
+            Text(stringResource(R.string.dont_have_account))
         }
     }
 }
+
