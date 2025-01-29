@@ -20,8 +20,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.style.TextAlign
 
 data class ChordPosition(
     val chord: String,
@@ -32,100 +32,100 @@ data class SongLine(
     val lyrics: String,
     val chords: List<ChordPosition>
 )
+data class Chord(
+    val chordName: String,
+    val positions: String,
+    val fingers: String
+)
 
 @Composable
 fun ChordText(songLine: SongLine) {
-    val context = LocalContext.current
-    var selectedChord by remember { mutableStateOf<String?>(null) }
+    var selectedChord by remember { mutableStateOf<Chord?>(null) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Εμφάνιση συγχορδιών πάνω από το κείμενο
         Row(modifier = Modifier.fillMaxWidth()) {
-            var currentIndex = 0
-            songLine.chords.forEach { chord ->
-                val adjustedPosition = chord.position - 1 // Adjust για την αρχή της μέτρησης
-                val space = adjustedPosition - currentIndex
-                if (space > 0) {
-                    Spacer(modifier = Modifier.width(space.dp * 6)) // Ρύθμιση multiplier
-                }
-                ClickableText(
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = Color.Red, fontSize = 14.sp)) {
-                            append(chord.chord)
+            songLine.chords.forEachIndexed { index, chordPosition ->
+                Box(modifier = Modifier.weight(1f, fill = false)) {
+                    ClickableText(
+                        text = buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = Color.Black,
+                                    background = Color.LightGray,
+                                    fontSize = 14.sp
+                                )
+                            ) {
+                                append(chordPosition.chord)
+                            }
+                        },
+                        modifier = Modifier.padding(horizontal = 2.dp),
+                        onClick = {
+                            val chordDetails = fetchChordDetails(chordPosition.chord)
+                            if (chordDetails != null) {
+                                selectedChord = chordDetails
+                            }
                         }
-                    },
-                    modifier = Modifier.padding(4.dp), // Προσθήκη padding
-                    onClick = {
-                        Log.d("ChordClick", "Clicked on chord: ${chord.chord}")
-                        Toast.makeText(context, "Clicked on chord: ${chord.chord}", Toast.LENGTH_SHORT).show()
-                        selectedChord = chord.chord
-                    }
-                )
-                currentIndex = adjustedPosition
+                    )
+                }
             }
         }
-        // Εμφάνιση στίχων
+
         Text(
             text = songLine.lyrics,
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(top = 4.dp)
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 
-    // Εμφάνιση διαλόγου όταν επιλέγεται μια συγχορδία
-    selectedChord?.let {
-        ChordDialog(chordName = it) {
+    selectedChord?.let { chord ->
+        ChordDialog(chord = chord) {
             selectedChord = null
         }
     }
 }
-@Composable
-fun ChordDialog(chordName: String, onDismiss: () -> Unit) {
-    val chordData = mapOf(
-        "B7" to "e|---2---|\nB|---0---|\nG|---2---|\nD|---1---|\nA|---2---|\nE|-------|",
-        "C" to "e|---0---|\nB|---1---|\nG|---0---|\nD|---2---|\nA|---3---|\nE|-------|"
+
+fun fetchChordDetails(chordName: String): Chord? {
+    val chordDatabase = mapOf(
+        "Em" to Chord("Em", "0 2 2 0 0 0", "X 2 3 1 1 1"),
+        "Am" to Chord("Am", "X 0 2 2 1 0", "X 1 3 2 1 1"),
+        "C" to Chord("C", "X 3 2 0 1 0", "X 3 2 0 1 0"),
+        "G" to Chord("G", "3 2 0 0 0 3", "2 1 0 0 0 3"),
+        "D" to Chord("D", "X X 0 2 3 2", "0 0 0 1 3 2")
     )
+    return chordDatabase[chordName]
+}
 
-    val chordDiagram = chordData[chordName] ?: "Chord not found"
-
+@Composable
+fun ChordDialog(chord: Chord, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
             Button(onClick = { onDismiss() }) {
-                Text("Κλείσιμο")
+                Text("Close")
             }
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Συγχορδία: $chordName",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    text = "Chord: ${chord.chordName}",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Fret Positions: ${chord.positions}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black
                 )
                 Text(
-                    text = chordDiagram,
+                    text = "Finger Positions: ${chord.fingers}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Black,
-                    modifier = Modifier.padding(8.dp)
+                    color = Color.Gray
                 )
             }
         }
     )
 }
 
-
-@Composable
-fun ChordWebView(chordName: String) {
-    val url = "https://chordpic.com/api/svg/$chordName"
-
-    AndroidView(factory = { context ->
-        WebView(context).apply {
-            settings.javaScriptEnabled = true
-            Log.d("ChordWebView", "Loading chord: $url")
-            loadUrl(url)
-        }
-    }, modifier = Modifier
-        .fillMaxWidth()
-        .height(300.dp))
-}

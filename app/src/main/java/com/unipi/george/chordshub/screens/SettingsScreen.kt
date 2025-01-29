@@ -71,19 +71,17 @@ fun SettingsScreen(navController: NavController, onLogout: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Settings Screen")
-        Spacer(modifier = Modifier.height(16.dp))
+
         Text("Role: ${role.value}")
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = {
             AuthRepository.logoutUser()
         }) {
             Text("Logout")
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = {
             showDialog.value = true // Εμφάνιση του παραθύρου διαλόγου
         }) {

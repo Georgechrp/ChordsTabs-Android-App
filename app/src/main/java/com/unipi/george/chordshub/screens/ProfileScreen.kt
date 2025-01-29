@@ -13,6 +13,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -26,17 +30,19 @@ import com.unipi.george.chordshub.repository.AuthRepository
 fun ProfileScreen(navController: NavController) {
     val fullname = AuthRepository.getFullName()
     val email = AuthRepository.getUserEmail()
+
+    var isUploadingImage by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Profile") },
+                title = { Text(text = fullname ?: "-") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    /*IconButton(onClick = { isUploadingImage = true }) { // **Ανοίγει το UploadUserImageScreen**
                         Icon(
-                            painter = painterResource(id = R.drawable.user_icon),
-                            contentDescription = "Back"
+                            painter = painterResource(id = R.drawable.edit_user_image),
+                            contentDescription = "Edit Profile Image"
                         )
-                    }
+                    }*/
                 }
             )
         }
@@ -48,24 +54,25 @@ fun ProfileScreen(navController: NavController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
+            /*Text(
                 text = "User Profile",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
-            )
-            Text(
+            )*/
+            /*Text(
                 text = "Full Name:" + fullname ?: "-",
                 style = MaterialTheme.typography.bodyMedium
-            )
+            )*/
             Text(
                 text = "Email:" + email?: "-",
                 style = MaterialTheme.typography.bodyMedium
             )
-            Button(onClick = {
+            /*Button(onClick = {
                 navController.popBackStack() // Επιστροφή στην προηγούμενη οθόνη
             }) {
                 Text("Back")
-            }
+            }*/
         }
     }
+
 }

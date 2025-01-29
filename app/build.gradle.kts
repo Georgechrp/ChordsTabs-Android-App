@@ -42,8 +42,13 @@ android {
 
 dependencies {
 
+    
 
+    implementation ("io.coil-kt:coil-compose:2.2.2")
+    implementation ("com.cloudinary:cloudinary-android:2.3.1")
     implementation ("com.google.accompanist:accompanist-navigation-animation:0.31.1-alpha")
+
+    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
 
     implementation("androidx.compose.material3:material3:1.1.0")
     implementation("androidx.navigation:navigation-compose:2.6.0")
