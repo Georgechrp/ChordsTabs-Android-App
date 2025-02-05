@@ -26,19 +26,20 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
+    primary = Blue40,  // ✅ Πιο μοντέρνο μπλε (Material 3)
+    secondary = Green40, // ✅ Κυανό-πράσινο για contrast
+    tertiary = Red40,  // ✅ Κόκκινο για δυναμικά στοιχεία
 
-    background = Color(0xFFFFFBFE), // Λευκό για το φόντο
-    surface = Color(0xFFE0E0E0), // Ανοιχτό γκρι για το Card
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F), // Σκούρο κείμενο στο φόντο
-    onSurface = Color(0xFF1C1B1F) // Σκούρο κείμενο στο Card
-
+    background = BackgroundLight, // ✅ Καθαρό λευκό
+    surface = SurfaceLight, // ✅ Ανοιχτό γκρι για καλύτερη αισθητική
+    onPrimary = OnPrimary,
+    onSecondary = OnSecondary,
+    onTertiary = OnPrimary,
+    onBackground = OnBackgroundLight,
+    onSurface = OnSurfaceLight
 )
+
+
 
 @Composable
 fun ChordsHubTheme(

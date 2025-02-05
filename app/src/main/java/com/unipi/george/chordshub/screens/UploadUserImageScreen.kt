@@ -3,6 +3,7 @@ package com.unipi.george.chordshub.screens
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -15,10 +16,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.cloudinary.Cloudinary
 import com.cloudinary.utils.ObjectUtils
@@ -34,6 +33,7 @@ fun UploadUserImageScreen(onClose: () -> Unit) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var isUploading by remember { mutableStateOf(false) } // ✅ **Νέα μεταβλητή**
 
     val imagePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -51,7 +51,6 @@ fun UploadUserImageScreen(onClose: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Spacer(modifier = Modifier.width(16.dp))
-
 
             IconButton(onClick = onClose) {
                 Icon(
@@ -73,7 +72,6 @@ fun UploadUserImageScreen(onClose: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
         Button(onClick = { imagePickerLauncher.launch("image/*") }) {
             Text("Choose Image")
         }
@@ -83,10 +81,13 @@ fun UploadUserImageScreen(onClose: () -> Unit) {
         Button(
             onClick = {
                 imageUri?.let { uri ->
+                    isUploading = true
                     coroutineScope.launch {
                         uploadImageToCloudinary(context, uri) { uploadedUrl ->
+                            isUploading = false
                             if (uploadedUrl != null) {
                                 Log.d("Cloudinary", "Uploaded Image URL: $uploadedUrl")
+                                Toast.makeText(context, "Upload Successful!", Toast.LENGTH_SHORT).show()
                                 onClose()
                             } else {
                                 Log.e("Cloudinary", "Upload failed")
@@ -94,9 +95,10 @@ fun UploadUserImageScreen(onClose: () -> Unit) {
                         }
                     }
                 } ?: Log.e("Cloudinary", "No image selected")
-            }
+            },
+            enabled = !isUploading
         ) {
-            Text("Upload Image")
+            Text(if (isUploading) "Uploading..." else "Upload Image")
         }
     }
 }
@@ -114,20 +116,30 @@ suspend fun uploadImageToCloudinary(context: Context, imageUri: Uri, callback: (
             val file = getFileFromUri(context, imageUri)
             val result = cloudinary.uploader().upload(file, ObjectUtils.emptyMap())
             val imageUrl = result["secure_url"] as? String
+
+            withContext(Dispatchers.Main) { // ✅
+                Toast.makeText(context, "Upload Successful!", Toast.LENGTH_SHORT).show()
+            }
+
             callback(imageUrl)
         } catch (e: Exception) {
             e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "Upload Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
             callback(null)
         }
     }
 }
 
 fun getFileFromUri(context: Context, uri: Uri): File {
-    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
     val tempFile = File(context.cacheDir, "temp_image")
-    val outputStream = FileOutputStream(tempFile)
-    inputStream?.copyTo(outputStream)
-    inputStream?.close()
-    outputStream.close()
+
+    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+        FileOutputStream(tempFile).use { outputStream ->
+            inputStream.copyTo(outputStream)
+        }
+    } ?: throw IllegalArgumentException("Failed to open InputStream from URI")
+
     return tempFile
 }

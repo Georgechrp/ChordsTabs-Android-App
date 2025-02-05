@@ -6,9 +6,10 @@ val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val Purple40 = Color(0xFF6200EE) // Νέο πρωτεύον χρώμα (Material 3 Μωβ)
+val PurpleGrey40 = Color(0xFF03DAC5) // Πιο έντονο δευτερεύον κυανό
+val Pink40 = Color(0xFFFF4081) // Πιο φωτεινό ροζ
+
 
 
 // Primary Colors
@@ -40,3 +41,6 @@ val OnSurfaceDark = Color(0xFFFFFFFF)
 // Success Colors
 val Success80 = Color(0xFFC8E6C9)
 val Success40 = Color(0xFF388E3C)
+
+val filterColor = Color(0xFF90CAF9)
+val checkedFilter = Color(0xFFDBCBD8)

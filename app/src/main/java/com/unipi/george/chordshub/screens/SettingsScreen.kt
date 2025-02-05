@@ -13,13 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
-import com.unipi.george.chordshub.navigation.Screen
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
 
@@ -83,7 +81,7 @@ fun SettingsScreen(navController: NavController, onLogout: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = {
-            showDialog.value = true // Εμφάνιση του παραθύρου διαλόγου
+            showDialog.value = true
         }) {
             Text("Delete Account")
         }

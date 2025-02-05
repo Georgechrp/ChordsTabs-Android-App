@@ -1,3 +1,5 @@
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,6 +12,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
+
         applicationId = "com.unipi.george.chordshub"
         minSdk = 31
         targetSdk = 35
@@ -17,6 +20,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+
     }
 
     buildTypes {
@@ -42,17 +47,17 @@ android {
 
 dependencies {
 
-    
 
-    implementation ("io.coil-kt:coil-compose:2.2.2")
-    implementation ("com.cloudinary:cloudinary-android:2.3.1")
-    implementation ("com.google.accompanist:accompanist-navigation-animation:0.31.1-alpha")
 
-    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    implementation (libs.coil.compose)
+    implementation (libs.cloudinary.android)
+    implementation (libs.accompanist.navigation.animation)
 
-    implementation("androidx.compose.material3:material3:1.1.0")
-    implementation("androidx.navigation:navigation-compose:2.6.0")
-    implementation("androidx.compose.material:material:1.5.1")
+    implementation (libs.androidx.material.icons.extended)
+
+    implementation(libs.material3)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.material)
 
 
     implementation(libs.androidx.core.ktx)

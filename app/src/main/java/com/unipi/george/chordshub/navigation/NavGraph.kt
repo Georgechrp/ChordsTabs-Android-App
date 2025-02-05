@@ -1,7 +1,5 @@
 package com.unipi.george.chordshub.navigation
 
-import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -21,10 +19,10 @@ import com.unipi.george.chordshub.screens.LibraryScreen
 import com.unipi.george.chordshub.screens.LoginScreen
 import com.unipi.george.chordshub.screens.SearchScreen
 import com.unipi.george.chordshub.screens.SignUpScreen
-import java.lang.reflect.Modifier
+import com.unipi.george.chordshub.viewmodels.HomeViewModel
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(navController: NavHostController, homeViewModel: HomeViewModel) {
     val isUserLoggedInState = remember { mutableStateOf(AuthRepository.isUserLoggedIn()) }
     val isExpanded = remember { mutableStateOf(false) }
     NavHost(
@@ -34,6 +32,7 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Home.route) {
             HomeScreen(
                 navController = navController,
+                homeViewModel = homeViewModel,
                 isFullScreen = isExpanded.value,
                 onFullScreenChange = { isExpanded.value = it }
             )
@@ -56,8 +55,6 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.SignUp.route) {
             SignUpScreen(navController)
         }
-
-
     }
 }
 
@@ -70,11 +67,11 @@ fun BottomNavigationBar(navController: NavHostController) {
     )
 
     NavigationBar(
-        containerColor = Color.Transparent, // **Κάνει το background διάφανο**
+        containerColor = Color.Transparent,
         tonalElevation = 0.dp
     ){
         items.forEach { screen ->
-            val currentRoute = navController.currentBackStackEntryAsState()?.value?.destination?.route
+            val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
             NavigationBarItem(
                 label = { Text(screen.route.uppercase()) },
                 icon = {
