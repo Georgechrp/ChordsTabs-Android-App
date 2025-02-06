@@ -40,8 +40,11 @@ fun ChordText(songLine: SongLine) {
 
         lines.forEach { line ->
             // Φιλτράρουμε τις συγχορδίες που ανήκουν σε αυτή τη γραμμή
-            val chordsInLine = songLine.chords.filter {
+           /* val chordsInLine = songLine.chords.filter {
                 it.position in currentIndex until currentIndex + line.length
+            }*/
+            val chordsInLine = songLine.chords.filter { chord ->
+                chord.position >= currentIndex && chord.position < currentIndex + line.length
             }
 
             val chordLine = buildAnnotatedString {
@@ -64,12 +67,23 @@ fun ChordText(songLine: SongLine) {
                 text = chordLine,
                 style = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.Start),
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { offset ->
+               /* onClick = { offset ->
                     chordsInLine.forEach { chord ->
                         val chordStart = chord.position - currentIndex
                         val chordEnd = chordStart + chord.chord.length
                         if (offset in chordStart..chordEnd) {
                             // onChordClick(chord.chord)
+                        }
+                    }
+                }*/
+                // Ξεσχόλιση και διόρθωση του onClick στη ChordText
+                onClick = { offset ->
+                    chordsInLine.forEach { chord ->
+                        val chordStart = chord.position - currentIndex
+                        val chordEnd = chordStart + chord.chord.length
+                        if (offset in chordStart..chordEnd) {
+                            //selectedChord = fetchChordDetails(chord.chord)
+                            //showDialog = true
                         }
                     }
                 }

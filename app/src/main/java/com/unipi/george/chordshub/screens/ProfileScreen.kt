@@ -1,9 +1,14 @@
 package com.unipi.george.chordshub.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,11 +22,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.repository.AuthRepository
+import com.unipi.george.chordshub.screens.SettingsScreen as SettingsScreen1
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,9 +41,20 @@ fun ProfileScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = fullName ?: "-") },
+                title = {
+                    Column {
+                        Text(text = fullName ?: "-")
+                        Text(
+                            text = "View Profile",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.clickable {
+                                // Handle click action here
+                            }
+                        )
+                    }
+                },
                 navigationIcon = {
-                    IconButton(onClick = { isUploadingImage = true }) { // **Ανοίγει το UploadUserImageScreen**
+                    IconButton(onClick = { isUploadingImage = true }) {
                         Icon(
                             painter = painterResource(id = R.drawable.edit_user_image),
                             contentDescription = "Edit Profile Image"
@@ -57,6 +75,7 @@ fun ProfileScreen(navController: NavController) {
                 text = "Email:" + email?: "-",
                 style = MaterialTheme.typography.bodyMedium
             )
+
         }
     }
     if (isUploadingImage) {

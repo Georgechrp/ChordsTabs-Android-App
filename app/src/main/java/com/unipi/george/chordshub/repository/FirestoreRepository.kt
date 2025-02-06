@@ -24,7 +24,7 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 val titlesAndIds = mutableListOf<Pair<String, String>>()
                 for (document in result) {
                     val title = document.getString("title")
-                    val id = document.id // Αποκτάς το ID του τραγουδιού
+                    val id = document.id
                     if (title != null && id != null) {
                         titlesAndIds.add(Pair(title, id))
                     }

@@ -33,7 +33,7 @@ fun UploadUserImageScreen(onClose: () -> Unit) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var isUploading by remember { mutableStateOf(false) } // ✅ **Νέα μεταβλητή**
+    var isUploading by remember { mutableStateOf(false) }
 
     val imagePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->

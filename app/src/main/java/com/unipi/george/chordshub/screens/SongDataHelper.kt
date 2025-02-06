@@ -23,8 +23,12 @@ fun getSongData(repository: FirestoreRepository, callback: (SongLine?, String?) 
                 println("SongLine: $songLine, Artist: $artist")
                 callback(songLine, artist)
             }
+            println("Lyrics: ${lyrics.joinToString("\n")}")
+            println("Chords: $chords")
         }
+
     }
+
 }
 
 

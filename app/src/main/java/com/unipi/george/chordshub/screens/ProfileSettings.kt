@@ -74,7 +74,7 @@ fun ProfileSettings(
                 .fillMaxHeight()
                 .fillMaxWidth(0.85f)
                 .offset { IntOffset(animatedOffset.toInt(), 0) }
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.surface) //color = Color.LightGray
                 .padding(16.dp)
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
