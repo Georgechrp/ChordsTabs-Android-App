@@ -14,7 +14,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 
 data class ChordPosition(
@@ -86,8 +85,7 @@ fun ChordText(songLine: SongLine) {
                     .padding(bottom = 8.dp)
             )
 
-            // Ενημερώνουμε το currentIndex για την επόμενη γραμμή
-            currentIndex += line.length + 1 // +1 για τον χαρακτήρα '\n'
+            currentIndex += line.length + 1
         }
     }
 }
@@ -136,7 +134,6 @@ fun SongDisplay(song: SongLine) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display chords and lyrics
         ChordText(
             songLine = song,
             /*onChordClick = { chordName ->
@@ -145,7 +142,6 @@ fun SongDisplay(song: SongLine) {
             }*/
         )
 
-        // Show chord details dialog
         selectedChord?.let { chord ->
             if (showDialog) {
                 ChordDialog(chord = chord, onDismiss = { showDialog = false })

@@ -51,7 +51,7 @@ fun ProfileSettings(
     val dragOffset = remember { mutableStateOf(0f) } // Κρατάει την τρέχουσα μετατόπιση
     val screenWidth =
         with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() } // Παίρνει το πλάτος της οθόνης
-    val maxDrag = -screenWidth * 0.70f // Μέγιστο όριο drag (70% από την αριστερή πλευρά)
+    val maxDrag = -screenWidth * 0.70f // max όριο drag
 
     val animatedOffset by animateFloatAsState(
         targetValue = dragOffset.value,
@@ -73,7 +73,7 @@ fun ProfileSettings(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(0.85f)
-                .offset { IntOffset(animatedOffset.toInt(), 0) } // Χρησιμοποιούμε το animatedOffset
+                .offset { IntOffset(animatedOffset.toInt(), 0) }
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp)
                 .pointerInput(Unit) {
@@ -83,15 +83,15 @@ fun ProfileSettings(
                                 .coerceIn(
                                     maxDrag,
                                     0f
-                                ) // Περιορίζει την κίνηση από 0 έως -70% του πλάτους της οθόνης
+                                )
                         },
                         onDragEnd = {
                             scope.launch {
                                 if (dragOffset.value < maxDrag * 0.35f) {
                                     isMenuOpen.value = false
-                                    dragOffset.value = 0f // Reset του offset αμέσως
+                                    dragOffset.value = 0f
                                 } else {
-                                    // Αν δεν το έχει σύρει αρκετά, επιστρέφει στη θέση του με animation
+
                                     animate(
                                         initialValue = dragOffset.value,
                                         targetValue = 0f,

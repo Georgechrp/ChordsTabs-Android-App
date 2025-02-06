@@ -1,28 +1,16 @@
 package com.unipi.george.chordshub.screens
 
-
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
 import com.unipi.george.chordshub.repository.FirestoreRepository
@@ -39,7 +27,6 @@ fun HomeScreen(
     val selectedSong = homeViewModel.selectedSong.collectAsState().value
     val selectedArtist = homeViewModel.selectedArtist.collectAsState().value
     val coroutineScope = rememberCoroutineScope()
-
     var songTitles by remember { mutableStateOf<List<String>>(emptyList()) }
     var songIds by remember { mutableStateOf<List<String>>(emptyList()) }
     val selectedTitle = remember { mutableStateOf<String?>(null) }
@@ -51,39 +38,17 @@ fun HomeScreen(
         }
     }
 
-    if (selectedSong == null) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    if (selectedSong == null && songTitles.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            items(songTitles) { title ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val songId = songIds[songTitles.indexOf(title)]
-                            repository.setSongId(songId)
-                            selectedTitle.value = title
-                            coroutineScope.launch {
-                                getSongData(repository) { song, artist ->
-                                    homeViewModel.setSelectedSong(song, artist)
-                                }
-                            }
-                        },
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
+            CircularProgressIndicator(
+                modifier = Modifier.size(50.dp)
+            )
         }
+    } else if (selectedSong == null) {
+        CardsView(songTitles, songIds, repository, homeViewModel, coroutineScope, selectedTitle)
     } else {
         DetailedSongView(
             title = selectedTitle.value ?: "Unknown Title",
@@ -96,4 +61,49 @@ fun HomeScreen(
             onFullScreenChange(false)
         }
     }
+}
+
+@Composable
+fun CardsView(
+    songTitles: List<String>,
+    songIds: List<String>,
+    repository: FirestoreRepository,
+    homeViewModel: HomeViewModel,
+    coroutineScope: kotlinx.coroutines.CoroutineScope,
+    selectedTitle: androidx.compose.runtime.MutableState<String?>
+) {
+    val defaultPadding = 16.dp
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(defaultPadding),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        itemsIndexed(songTitles.zip(songIds)) { index, (title, songId) ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        repository.setSongId(songId)
+                        selectedTitle.value = title
+                        coroutineScope.launch {
+                            getSongData(repository) { song, artist ->
+                                homeViewModel.setSelectedSong(song, artist)
+                            }
+                        }
+                    },
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(defaultPadding)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+
 }

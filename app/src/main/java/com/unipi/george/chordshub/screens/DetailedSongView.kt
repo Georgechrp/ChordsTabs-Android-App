@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,6 +33,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,17 +51,15 @@ import com.unipi.george.chordshub.repository.FirestoreRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DetailedSongView(title: String, artist:String, song: SongLine, isFullScreen: Boolean, onFullScreenChange: (Boolean) -> Unit, onBack: () -> Unit) {
     val showDialog = remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    //val context = LocalContext.current
     val isScrolling = remember { mutableStateOf(false) }
     val scrollSpeed = remember { mutableStateOf(100f) }
     val isSpeedControlVisible = remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-
     val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
     val songTitle = remember { mutableStateOf<String?>(null) }
 
@@ -110,111 +110,151 @@ fun DetailedSongView(title: String, artist:String, song: SongLine, isFullScreen:
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                    ){
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = if (isFullScreen) 18.sp else 16.sp
-                        )
-                        Text(
-                            text = artist,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontSize = if (isFullScreen) 16.sp else 14.sp,
-                                textDecoration = TextDecoration.Underline,
-                                color = Color.Blue
-                            ),
-                            modifier = Modifier.clickable {
-                                Log.d("Artist Click", "Clicked on artist: $artist")
-                            }
-                        )
-                    }
-                    Row {
-                        Box(
-                            modifier = Modifier
-                                .combinedClickable(
-                                    onClick = { isScrolling.value = !isScrolling.value },
-                                    onLongClick = { isSpeedControlVisible.value = true }
-                                )
-                                .padding(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (isScrolling.value) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (isScrolling.value) "Pause Auto-Scroll" else "Start Auto-Scroll"
-                            )
-                        }
-
-                        IconButton(onClick = { showDialog.value = true }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "More Options"
-                            )
-                        }
-                    }
+                    SongInfoPlace(title, artist, isFullScreen, Modifier.weight(1f)) //title, artist
+                    OptionsPlace(isScrolling, isSpeedControlVisible, showDialog)//AutoScroll & options
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                ControlSpeed(scrollSpeed, isSpeedControlVisible)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                if (isSpeedControlVisible.value) {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Scroll Speed", fontSize = 14.sp)
+                SongLyricsView(song = song, listState = listState)
 
-                            IconButton(onClick = { isSpeedControlVisible.value = false }) {
-                                Text("❌")
-                            }
-                        }
-
-                        Slider(
-                            value = scrollSpeed.value,
-                            onValueChange = { scrollSpeed.value = it },
-                            valueRange = 10f..200f,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                // Εμφάνιση στίχων με συγχορδίες
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 16.dp)
-                ) {
-                    item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            ChordText(songLine = song)
-                        }
-                    }
-                }
-                if (showDialog.value) {
-                    AlertDialog(
-                        onDismissRequest = { showDialog.value = false },
-                        confirmButton = {
-                            Text(
-                                text = "OK",
-                                modifier = Modifier.clickable { showDialog.value = false }
-                            )
-                        },
-                        title = { Text("Επιλογές") },
-                        text = { Text("Εδώ μπορείς να προσθέσεις επιλογές για το τραγούδι.") }
-                    )
-                }
-
+                options(showDialog)
             }
         }
+    }
+}
+
+
+@Composable
+fun SongInfoPlace(title: String, artist: String, isFullScreen: Boolean, modifier: Modifier = Modifier) {
+    Column(modifier = modifier
+        .fillMaxWidth()
+    ){
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = if (isFullScreen) 18.sp else 16.sp
+        )
+        Text(
+            text = artist,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontSize = if (isFullScreen) 16.sp else 14.sp,
+                textDecoration = TextDecoration.Underline,
+                color = Color.Blue
+            ),
+            modifier = Modifier.clickable {
+                Log.d("Artist Click", "Clicked on artist: $artist")
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun OptionsPlace(
+    isScrolling: MutableState<Boolean>,
+    isSpeedControlVisible: MutableState<Boolean>,
+    showDialog: MutableState<Boolean>
+) {
+    Row {
+        Box(
+            modifier = Modifier
+                .combinedClickable(
+                    onClick = { isScrolling.value = !isScrolling.value },
+                    onLongClick = { isSpeedControlVisible.value = true }
+                )
+                .padding(8.dp)
+        ) {
+            Icon(
+                imageVector = if (isScrolling.value) Icons.Default.Pause else Icons.Default.PlayArrow,
+                contentDescription = if (isScrolling.value) "Pause Auto-Scroll" else "Start Auto-Scroll"
+            )
+        }
+
+        IconButton(onClick = { showDialog.value = true }) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "More Options"
+            )
+        }
+    }
+}
+
+@Composable
+fun ControlSpeed(scrollSpeed: MutableState<Float>, isSpeedControlVisible: MutableState<Boolean>) {
+    if (isSpeedControlVisible.value) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Scroll Speed", fontSize = 14.sp)
+
+                IconButton(onClick = { isSpeedControlVisible.value = false }) {
+                    Text("❌")
+                }
+            }
+
+            Slider(
+                value = scrollSpeed.value,
+                onValueChange = { scrollSpeed.value = it },
+                valueRange = 10f..200f,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+
+@Composable
+fun SongLyricsView(song: SongLine, listState: LazyListState) {
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 16.dp)
+    ) {
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+                ChordText(songLine = song)
+            }
+        }
+    }
+}
+
+
+@Composable
+fun options(showDialog: MutableState<Boolean>) {
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            confirmButton = {
+                Text(
+                    text = "OK",
+                    modifier = Modifier.clickable { showDialog.value = false }
+                )
+            },
+            dismissButton = {
+                Text(
+                    text = "Save as PDF",
+                    modifier = Modifier.clickable {
+                        //saveCardContentAsPdf(context, title, lyrics)
+                        showDialog.value = false
+                    }
+                )
+            },
+            title = { Text("Επιλογές") },
+            text = { Text("Εδώ μπορείς να προσθέσεις επιλογές για το τραγούδι.") }
+        )
     }
 }

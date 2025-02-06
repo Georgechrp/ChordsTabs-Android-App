@@ -64,13 +64,10 @@ fun LoginScreen(navController: NavController, onLoginSuccess: () -> Unit) {
                     Log.d("LoginScreen", "Login successful. Navigating to Home: ${Screen.Home.route}")
                     onLoginSuccess()
                     isUserLoggedInState.value = true
-                    Log.d("Navigation", "Navigating to: ${Screen.Home.route}")
                 } else {
-                    Log.d("LoginScreen", "Login failed: $errorMessage")
                     Toast.makeText(context, errorMessage ?: context.getString(R.string.login_failed), Toast.LENGTH_SHORT).show()
                 }
             }
-
         }) {
             Text(stringResource(R.string.sign_in))
         }

@@ -1,18 +1,9 @@
 package com.unipi.george.chordshub.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -38,51 +29,59 @@ fun SettingsScreen(navController: NavController, onLogout: () -> Unit) {
     }
 
     if (showDialog.value) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Delete Account") },
-            text = { Text("Are you sure you want to delete your account? This action cannot be undone.") },
-            confirmButton = {
-                Button(onClick = {
-                    showDialog.value = false
-                    AuthRepository.deleteUserAccount { success, message ->
-                        if (success) {
-                            Toast.makeText(context, "Account Deleted", Toast.LENGTH_SHORT).show()
-                            isUserLoggedInState.value = false
-                        } else {
-                            deleteMessage.value = message ?: "An unexpected error occurred."
-                        }
+        DeleteAccountDialog(
+            onConfirm = {
+                showDialog.value = false
+                AuthRepository.deleteUserAccount { success, message ->
+                    if (success) {
+                        Toast.makeText(context, "Account Deleted", Toast.LENGTH_SHORT).show()
+                        isUserLoggedInState.value = false
+                    } else {
+                        deleteMessage.value = message ?: "An unexpected error occurred."
                     }
-                }) {
-                    Text("Yes")
                 }
             },
-            dismissButton = {
-                Button(onClick = { showDialog.value = false }) {
-                    Text("No")
-                }
-            }
+            onDismiss = { showDialog.value = false }
         )
     }
 
+    SettingsContent(role.value, showDialog, deleteMessage)
+}
+
+@Composable
+fun DeleteAccountDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete Account") },
+        text = { Text("Are you sure you want to delete your account? This action cannot be undone.") },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Yes")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("No")
+            }
+        }
+    )
+}
+
+@Composable
+fun SettingsContent(role: String?, showDialog: MutableState<Boolean>, deleteMessage: MutableState<String?>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
-        Text("Role: ${role.value}")
+        Text("Role: $role")
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = {
-            AuthRepository.logoutUser()
-        }) {
+        Button(onClick = { AuthRepository.logoutUser() }) {
             Text("Logout")
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = {
-            showDialog.value = true
-        }) {
+        Button(onClick = { showDialog.value = true }) {
             Text("Delete Account")
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -91,4 +90,3 @@ fun SettingsScreen(navController: NavController, onLogout: () -> Unit) {
         }
     }
 }
-
