@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens
+package com.unipi.george.chordshub.screens.auth
 
 import android.util.Log
 import android.widget.Toast

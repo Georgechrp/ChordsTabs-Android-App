@@ -3,28 +3,31 @@ package com.unipi.george.chordshub.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.unipi.george.chordshub.screens.HomeScreen
+import com.unipi.george.chordshub.screens.main.HomeScreen
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.unipi.george.chordshub.repository.AuthRepository
-import com.unipi.george.chordshub.screens.LibraryScreen
-import com.unipi.george.chordshub.screens.LoginScreen
-import com.unipi.george.chordshub.screens.SearchScreen
-import com.unipi.george.chordshub.screens.SignUpScreen
+import com.unipi.george.chordshub.screens.main.LibraryScreen
+import com.unipi.george.chordshub.screens.auth.LoginScreen
+import com.unipi.george.chordshub.screens.main.SearchScreen
+import com.unipi.george.chordshub.screens.auth.SignUpScreen
 import com.unipi.george.chordshub.viewmodels.HomeViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController, homeViewModel: HomeViewModel) {
     val isUserLoggedInState = remember { mutableStateOf(AuthRepository.isUserLoggedIn()) }
     val isExpanded = remember { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf("All") }
     NavHost(
         navController = navController,
         startDestination = if (isUserLoggedInState.value) Screen.Home.route else Screen.Login.route
@@ -34,7 +37,8 @@ fun NavGraph(navController: NavHostController, homeViewModel: HomeViewModel) {
                 navController = navController,
                 homeViewModel = homeViewModel,
                 isFullScreen = isExpanded.value,
-                onFullScreenChange = { isExpanded.value = it }
+                onFullScreenChange = { isExpanded.value = it },
+                selectedFilter = selectedFilter
             )
         }
         composable(Screen.Search.route) {

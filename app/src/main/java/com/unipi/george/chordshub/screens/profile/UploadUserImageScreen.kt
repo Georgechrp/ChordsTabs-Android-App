@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens
+package com.unipi.george.chordshub.screens.profile
 
 import android.content.Context
 import android.net.Uri
@@ -26,7 +26,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
 
 @Composable
 fun UploadUserImageScreen(onClose: () -> Unit) {

@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens
+package com.unipi.george.chordshub.screens.main
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -34,40 +34,45 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.components.Chord
+import com.unipi.george.chordshub.components.ChordDialog
 import com.unipi.george.chordshub.components.ChordText
 import com.unipi.george.chordshub.components.SongLine
+import com.unipi.george.chordshub.components.fetchChordDetails
+import com.unipi.george.chordshub.models.SongData
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun DetailedSongView(title: String, artist:String, song: SongLine, isFullScreen: Boolean, onFullScreenChange: (Boolean) -> Unit, onBack: () -> Unit) {
-    val showDialog = remember { mutableStateOf(false) }
-    //val context = LocalContext.current
+fun DetailedSongView(
+    isFullScreen: Boolean,
+    onFullScreenChange: (Boolean) -> Unit,
+    onBack: () -> Unit,
+    repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance())// Δίνουμε τη δυνατότητα στο repository να περαστεί εξωτερικά για ευκολότερο testing/DI
+) {
+    val songDataState = remember { mutableStateOf<SongData?>(null) }
     val isScrolling = remember { mutableStateOf(false) }
     val scrollSpeed = remember { mutableStateOf(100f) }
     val isSpeedControlVisible = remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
-    val songTitle = remember { mutableStateOf<String?>(null) }
+    val showDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        repository.getSongTitle { title ->
-            songTitle.value = title
-            Log.d("Firestore", "Retrieved Title: ${songTitle.value}")
-        }
+        songDataState.value = repository.getSongDataAsync()
     }
 
     LaunchedEffect(isScrolling.value) {
@@ -92,47 +97,62 @@ fun DetailedSongView(title: String, artist:String, song: SongLine, isFullScreen:
             .fillMaxSize()
             .clickable { onFullScreenChange(!isFullScreen) }
     ) {
-        Card(
-            modifier = if (isFullScreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(if (isFullScreen) 0.dp else 16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = if (isFullScreen) 0.dp else 8.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
+        if (songDataState.value == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Loading...")
+            }
+        } else {
+            val songData = songDataState.value!!
+            val songLine = SongLine(
+                lyrics = songData.lyrics?.joinToString("\n") ?: "",
+                chords = songData.chords ?: emptyList()
+            )
+            Card(
+                modifier = if (isFullScreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(if (isFullScreen) 0.dp else 16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = if (isFullScreen) 0.dp else 8.dp)
             ) {
-                Row(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxSize()
+                        .padding(8.dp)
                 ) {
-                    SongInfoPlace(title, artist, isFullScreen, Modifier.weight(1f)) //title, artist
-                    OptionsPlace(isScrolling, isSpeedControlVisible, showDialog)//AutoScroll & options
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Εμφάνιση πληροφοριών τραγουδιού (τίτλος και artist)
+                        SongInfoPlace(
+                            title = songData.title ?: "No Title",
+                            artist = songData.artist ?: "Unknown Artist",
+                            isFullScreen = isFullScreen,
+                            modifier = Modifier.weight(1f)
+                        )
+                        // Εμφάνιση επιλογών (auto-scroll, διαχείριση ταχύτητας, κλπ.)
+                        OptionsPlace(isScrolling, isSpeedControlVisible, showDialog)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ControlSpeed(scrollSpeed, isSpeedControlVisible)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    SongLyricsView(song = songLine, listState = listState)
+
+                    OptionsDialog(showDialog)
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                ControlSpeed(scrollSpeed, isSpeedControlVisible)
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                SongLyricsView(song = song, listState = listState)
-
-                options(showDialog)
             }
         }
     }
 }
 
-
 @Composable
 fun SongInfoPlace(title: String, artist: String, isFullScreen: Boolean, modifier: Modifier = Modifier) {
-    Column(modifier = modifier
-        .fillMaxWidth()
-    ){
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
@@ -174,7 +194,6 @@ fun OptionsPlace(
                 contentDescription = if (isScrolling.value) "Pause Auto-Scroll" else "Start Auto-Scroll"
             )
         }
-
         IconButton(onClick = { showDialog.value = true }) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
@@ -194,12 +213,10 @@ fun ControlSpeed(scrollSpeed: MutableState<Float>, isSpeedControlVisible: Mutabl
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Scroll Speed", fontSize = 14.sp)
-
                 IconButton(onClick = { isSpeedControlVisible.value = false }) {
                     Text("❌")
                 }
             }
-
             Slider(
                 value = scrollSpeed.value,
                 onValueChange = { scrollSpeed.value = it },
@@ -210,9 +227,11 @@ fun ControlSpeed(scrollSpeed: MutableState<Float>, isSpeedControlVisible: Mutabl
     }
 }
 
-
 @Composable
 fun SongLyricsView(song: SongLine, listState: LazyListState) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedChord by remember { mutableStateOf<Chord?>(null) }
+
     LazyColumn(
         state = listState,
         modifier = Modifier
@@ -220,21 +239,29 @@ fun SongLyricsView(song: SongLine, listState: LazyListState) {
             .padding(bottom = 16.dp)
     ) {
         item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                ChordText(songLine = song)
-            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ChordText(
+                songLine = song,
+                onChordClick = { chordName ->
+                    selectedChord = fetchChordDetails(chordName)
+                    showDialog = true
+                }
+            )
+        }
+    }
+
+    // Εμφάνιση του διαλόγου όταν επιλέγεται μια συγχορδία
+    selectedChord?.let { chord ->
+        if (showDialog) {
+            ChordDialog(chord = chord, onDismiss = { showDialog = false })
         }
     }
 }
 
 
 @Composable
-fun options(showDialog: MutableState<Boolean>) {
+fun OptionsDialog(showDialog: MutableState<Boolean>) {
     if (showDialog.value) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
@@ -248,7 +275,7 @@ fun options(showDialog: MutableState<Boolean>) {
                 Text(
                     text = "Save as PDF",
                     modifier = Modifier.clickable {
-                        //saveCardContentAsPdf(context, title, lyrics)
+                        // Εδώ μπορείς να προσθέσεις τη λογική αποθήκευσης ως PDF
                         showDialog.value = false
                     }
                 )

@@ -20,7 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +46,8 @@ fun TopBar(
     navController: NavController,
     isVisible: Boolean,
     onMenuClick: () -> Unit,
-    selectedSong: SongLine?
+    selectedSong: SongLine?,
+    onFilterChange: (String) -> Unit
 ) {
     if (isVisible) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -57,7 +57,7 @@ fun TopBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(color = Blue40)
-                .padding(10.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             CircularImageView(painter = painter, onClick = { onMenuClick() })
@@ -65,7 +65,7 @@ fun TopBar(
 
             if (currentRoute == "Home") {
                 if (selectedSong == null) {
-                    FilterRow()
+                    FilterRow(onFilterChange = onFilterChange)
                 }
             }
         }
@@ -108,29 +108,24 @@ fun CircularImageView(painter: Painter, onClick: () -> Unit) {
 }
 
 @Composable
-fun FilterRow() {
+fun FilterRow(onFilterChange: (String) -> Unit) {
     var selectedFilter by remember { mutableStateOf("All") }
     val scrollState = rememberScrollState()
+    val filters = listOf("All", "Jazz", "Metal", "Classical", "Britpop", "Pop", "Rock")
 
-    val filters = listOf("All", "Jazz", "Metal", "Classical", "Greek drill")
-    val sortedFilters = filters.sortedBy { if (it == selectedFilter) 0 else 1 }
-
-    LaunchedEffect(selectedFilter) {
-        scrollState.animateScrollTo(0)
-    }
-
-    Row(
-        modifier = Modifier
-            .horizontalScroll(scrollState)
-    ) {
-        sortedFilters.forEach { filter ->
+    Row(modifier = Modifier.horizontalScroll(scrollState)) {
+        filters.forEach { filter ->
             FilterButton(
                 text = filter,
                 isSelected = filter == selectedFilter,
-                onClick = { selectedFilter = filter }
+                onClick = {
+                    selectedFilter = filter
+                    onFilterChange(filter) // ✅ Ενημερώνουμε το HomeScreen
+                }
             )
             Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
+
 

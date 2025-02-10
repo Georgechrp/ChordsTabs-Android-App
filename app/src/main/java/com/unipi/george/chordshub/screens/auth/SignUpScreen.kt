@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens
+package com.unipi.george.chordshub.screens.auth
 
 import android.content.Context
 import android.util.Log
@@ -13,8 +13,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf

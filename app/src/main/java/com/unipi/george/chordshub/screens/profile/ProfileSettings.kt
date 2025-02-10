@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens
+package com.unipi.george.chordshub.screens.profile
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animate

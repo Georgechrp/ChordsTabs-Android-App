@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens
+package com.unipi.george.chordshub.screens.main
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.components.SongLine
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.viewmodels.HomeViewModel
 
@@ -21,7 +22,8 @@ fun HomeScreen(
     navController: NavController,
     isFullScreen: Boolean,
     onFullScreenChange: (Boolean) -> Unit,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    selectedFilter: String
 ) {
     val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
     val selectedSong = homeViewModel.selectedSong.collectAsState().value
@@ -30,36 +32,36 @@ fun HomeScreen(
     var songTitles by remember { mutableStateOf<List<String>>(emptyList()) }
     var songIds by remember { mutableStateOf<List<String>>(emptyList()) }
     val selectedTitle = remember { mutableStateOf<String?>(null) }
+    //var selectedFilter by remember { mutableStateOf("All") }
 
-    LaunchedEffect(Unit) {
-        repository.getSongTitles { titlesAndIds ->
+    LaunchedEffect(selectedFilter) {
+        println("📌 Calling getFilteredSongs with filter: $selectedFilter")
+        repository.getFilteredSongs(selectedFilter) { titlesAndIds ->
             songTitles = titlesAndIds.map { it.first }
             songIds = titlesAndIds.map { it.second }
         }
     }
+
 
     if (selectedSong == null && songTitles.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(50.dp)
-            )
+            CircularProgressIndicator(modifier = Modifier.size(50.dp))
         }
     } else if (selectedSong == null) {
         CardsView(songTitles, songIds, repository, homeViewModel, coroutineScope, selectedTitle)
     } else {
         DetailedSongView(
-            title = selectedTitle.value ?: "Unknown Title",
-            artist = selectedArtist ?: "Unknown Artist",
-            song = selectedSong,
             isFullScreen = isFullScreen,
-            onFullScreenChange = onFullScreenChange
-        ) {
-            homeViewModel.clearSelectedSong()
-            onFullScreenChange(false)
-        }
+            onFullScreenChange = onFullScreenChange,
+            onBack = {
+                homeViewModel.clearSelectedSong()
+                onFullScreenChange(false)
+            },
+            repository = repository // Προαιρετικά, αν θέλεις να περάσεις το repository
+        )
     }
 }
 
@@ -86,8 +88,16 @@ fun CardsView(
                         repository.setSongId(songId)
                         selectedTitle.value = title
                         coroutineScope.launch {
-                            getSongData(repository) { song, artist ->
-                                homeViewModel.setSelectedSong(song, artist)
+                            // Ανάκτηση των δεδομένων ως SongData
+                            val songData = repository.getSongDataAsync()
+                            if (songData != null) {
+                                // Μετατροπή σε SongLine (αν το UI σου απαιτεί SongLine)
+                                val songLine = SongLine(
+                                    lyrics = songData.lyrics?.joinToString("\n") ?: "",
+                                    chords = songData.chords ?: emptyList()
+                                )
+                                // Εδώ ορίζεις το selectedSong και τον artist στο ViewModel
+                                homeViewModel.setSelectedSong(songLine, songData.artist)
                             }
                         }
                     },
@@ -95,7 +105,7 @@ fun CardsView(
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Column(modifier = Modifier.padding(defaultPadding)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.bodyMedium,
@@ -103,6 +113,7 @@ fun CardsView(
                     )
                 }
             }
+
         }
     }
 

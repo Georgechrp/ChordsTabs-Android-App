@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens
+package com.unipi.george.chordshub.screens.profile
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
