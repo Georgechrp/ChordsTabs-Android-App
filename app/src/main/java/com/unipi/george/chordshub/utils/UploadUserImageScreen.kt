@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens.profile
+package com.unipi.george.chordshub.utils
 
 import android.content.Context
 import android.net.Uri

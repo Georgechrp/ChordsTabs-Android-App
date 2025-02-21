@@ -1,7 +1,6 @@
 package com.unipi.george.chordshub.utils
 
-import android.widget.Toast
-import com.unipi.george.chordshub.components.SongLine
+/*
 
 fun saveCardContentAsPdf(context: android.content.Context, title: String, lyrics: List<SongLine>) {
     val pdfDocument = android.graphics.pdf.PdfDocument()
@@ -53,4 +52,5 @@ fun saveCardContentAsPdf(context: android.content.Context, title: String, lyrics
         pdfDocument.close()
     }
 }
+*/
 

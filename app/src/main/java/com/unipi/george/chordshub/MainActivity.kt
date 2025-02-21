@@ -2,6 +2,7 @@ package com.unipi.george.chordshub
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
@@ -25,29 +26,28 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.components.ChordPosition
+import com.unipi.george.chordshub.models.ChordPosition
 import com.unipi.george.chordshub.components.TopBar
 import com.unipi.george.chordshub.models.SongData
 import com.unipi.george.chordshub.navigation.BottomNavigationBar
-import com.unipi.george.chordshub.navigation.Screen
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.FirestoreRepository
-import com.unipi.george.chordshub.screens.main.HomeScreen
-import com.unipi.george.chordshub.screens.main.LibraryScreen
 import com.unipi.george.chordshub.screens.auth.LoginScreen
-import com.unipi.george.chordshub.screens.profile.ProfileSettings
-import com.unipi.george.chordshub.screens.main.SearchScreen
 import com.unipi.george.chordshub.screens.auth.SignUpScreen
 import com.unipi.george.chordshub.ui.theme.ChordsHubTheme
 import com.unipi.george.chordshub.viewmodels.HomeViewModel
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
+import com.unipi.george.chordshub.models.SongLine
+import com.unipi.george.chordshub.navigation.NavGraph
+import com.unipi.george.chordshub.screens.main.EditProfileScreen
+import com.unipi.george.chordshub.screens.main.ProfileScreen
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //addDataForBohemianRhapsody()
+        //addDataForFurElise()
         setContent {
             ChordsHubTheme {
                 val navController = rememberNavController()
@@ -64,31 +64,38 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun addDataForBohemianRhapsody() {
+    private fun addDataForFurElise() {
         val repository = FirestoreRepository(FirebaseFirestore.getInstance())
 
-        // Χρησιμοποιούμε το lifecycleScope για να συνδέσουμε το coroutine με τον κύκλο ζωής της activity
         lifecycleScope.launch {
             val songData = SongData(
-                title = "Bohemian Rhapsody",
-                artist = "Queen",
-                key = "Bb", // Μπορείς να προσαρμόσεις το key ανάλογα με την εκδοχή
+                title = "Für Elise",
+                artist = "Ludwig van Beethoven",
+                key = "A Minor",
+                bpm = 75, // Μέτριο tempo
+                genres = listOf("Classical"),
+                createdAt = System.currentTimeMillis().toString(),
+                creatorId = "admin",
                 lyrics = listOf(
-                    "Is this the real life?",
-                    "Is this just fantasy?",
-                    "Caught in a landslide, no escape from reality.",
-                    "Open your eyes, look up to the skies and see..."
-                ),
-                chords = listOf(
-                    ChordPosition("Bb", 0),
-                    ChordPosition("Gm", 5),
-                    ChordPosition("Eb", 10),
-                    ChordPosition("F", 15)
-                ),
-                genres = listOf("Rock")
+                    SongLine(
+                        lineNumber = 1,
+                        text = "Für Elise, section 1 melody",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("E", 8), ChordPosition("G", 16), ChordPosition("C", 24))
+                    ),
+                    SongLine(
+                        lineNumber = 2,
+                        text = "Für Elise, section 2 transition",
+                        chords = listOf(ChordPosition("F", 0), ChordPosition("C", 10), ChordPosition("G", 20), ChordPosition("E", 28))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    )
+                )
             )
 
-            repository.addSongData("bohemian_rhapsody_queen", songData)
+            repository.addSongData("fur_elise_beethoven", songData)
         }
     }
 
@@ -106,6 +113,9 @@ fun LoggedInScaffold(
     val coroutineScope = rememberCoroutineScope()
     var selectedFilter by remember { mutableStateOf("All") }
 
+    BackHandler(enabled = isMenuOpen.value) {
+        isMenuOpen.value = false
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -115,7 +125,7 @@ fun LoggedInScaffold(
                 navController = navController,
                 isVisible = !isFullScreen.value,
                 onMenuClick = { isMenuOpen.value = !isMenuOpen.value },
-                selectedSong = homeViewModel.selectedSong.collectAsState().value,
+                selectedSong = homeViewModel.selectedSong.collectAsState().value?.firstOrNull(),
                 onFilterChange = { selectedFilter = it }
             )
 
@@ -126,38 +136,21 @@ fun LoggedInScaffold(
                     }
                 }
             ) { innerPadding ->
-                NavHost(
-                    navController = navController,
-                    startDestination = Screen.Home.route,
-                    modifier = Modifier.padding(innerPadding)
-                ) {
-                    composable(Screen.Home.route) {
-                        HomeScreen(
-                            navController = navController,
-                            isFullScreen = isFullScreen.value,
-                            onFullScreenChange = { isFullScreen.value = it },
-                            homeViewModel = homeViewModel,
-                            selectedFilter = selectedFilter
-                        )
-                    }
-                    composable(Screen.Search.route) { SearchScreen(navController) }
-                    composable(Screen.Library.route) { LibraryScreen(navController) }
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    NavGraph(navController, isMenuOpen, isFullScreen, homeViewModel)
                 }
             }
         }
     }
     AnimatedVisibility(visible = isMenuOpen.value) {
-        ProfileSettings(
-            isMenuOpen = isMenuOpen,
+        EditProfileScreen(
             navController = navController,
-            onLogout = {
-                isUserLoggedInState.value = false
-                fullNameState.value = null
-                AuthRepository.logoutUser()
-            }
+            currentUsername = AuthRepository.getFullName() ?: "User",
+            currentProfileImage = R.drawable.edit_user_image
         )
     }
 }
+
 
 @Composable
 fun LoggedOutNavHost(

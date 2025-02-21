@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.unipi.george.chordshub.R
+import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.ui.theme.Blue40
 import com.unipi.george.chordshub.ui.theme.checkedFilter
 import com.unipi.george.chordshub.ui.theme.filterColor
@@ -120,7 +121,7 @@ fun FilterRow(onFilterChange: (String) -> Unit) {
                 isSelected = filter == selectedFilter,
                 onClick = {
                     selectedFilter = filter
-                    onFilterChange(filter) // ✅ Ενημερώνουμε το HomeScreen
+                    onFilterChange(filter)
                 }
             )
             Spacer(modifier = Modifier.width(8.dp))

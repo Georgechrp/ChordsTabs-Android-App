@@ -1,5 +1,7 @@
 package com.unipi.george.chordshub.components
 
+import com.unipi.george.chordshub.models.Chord
+
 
 fun fetchChordDetails(chordName: String): Chord? {
     val chordDatabase = mapOf(

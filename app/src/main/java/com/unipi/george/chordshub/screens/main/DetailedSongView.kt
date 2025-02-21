@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,11 +35,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,11 +45,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.components.Chord
-import com.unipi.george.chordshub.components.ChordDialog
 import com.unipi.george.chordshub.components.ChordText
-import com.unipi.george.chordshub.components.SongLine
-import com.unipi.george.chordshub.components.fetchChordDetails
+import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.models.SongData
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import kotlinx.coroutines.delay
@@ -61,7 +57,7 @@ fun DetailedSongView(
     isFullScreen: Boolean,
     onFullScreenChange: (Boolean) -> Unit,
     onBack: () -> Unit,
-    repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance())// Δίνουμε τη δυνατότητα στο repository να περαστεί εξωτερικά για ευκολότερο testing/DI
+    repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance()) // Δίνουμε τη δυνατότητα στο repository να περαστεί εξωτερικά για testing
 ) {
     val songDataState = remember { mutableStateOf<SongData?>(null) }
     val isScrolling = remember { mutableStateOf(false) }
@@ -103,10 +99,7 @@ fun DetailedSongView(
             }
         } else {
             val songData = songDataState.value!!
-            val songLine = SongLine(
-                lyrics = songData.lyrics?.joinToString("\n") ?: "",
-                chords = songData.chords ?: emptyList()
-            )
+
             Card(
                 modifier = if (isFullScreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(if (isFullScreen) 0.dp else 16.dp),
@@ -141,7 +134,8 @@ fun DetailedSongView(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    SongLyricsView(song = songLine, listState = listState)
+                    // ✅ Νέα συνάρτηση που εμφανίζει τα lyrics με συγχορδίες
+                    SongLyricsView(songLines = songData.lyrics ?: emptyList(), listState = listState)
 
                     OptionsDialog(showDialog)
                 }
@@ -228,36 +222,25 @@ fun ControlSpeed(scrollSpeed: MutableState<Float>, isSpeedControlVisible: Mutabl
 }
 
 @Composable
-fun SongLyricsView(song: SongLine, listState: LazyListState) {
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedChord by remember { mutableStateOf<Chord?>(null) }
-
+fun SongLyricsView(songLines: List<SongLine>, listState: LazyListState) {
     LazyColumn(
         state = listState,
         modifier = Modifier
             .fillMaxSize()
             .padding(bottom = 16.dp)
     ) {
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ChordText(
-                songLine = song,
-                onChordClick = { chordName ->
-                    selectedChord = fetchChordDetails(chordName)
-                    showDialog = true
-                }
-            )
-        }
-    }
-
-    // Εμφάνιση του διαλόγου όταν επιλέγεται μια συγχορδία
-    selectedChord?.let { chord ->
-        if (showDialog) {
-            ChordDialog(chord = chord, onDismiss = { showDialog = false })
+        items(songLines) { line ->
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                ChordText(songLine = line, onChordClick = { clickedChord ->
+                    Log.d("Chord Click", "Clicked on: $clickedChord")
+                })
+            }
         }
     }
 }
+
 
 
 @Composable

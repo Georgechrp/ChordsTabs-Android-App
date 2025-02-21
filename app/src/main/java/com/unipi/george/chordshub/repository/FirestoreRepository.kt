@@ -5,10 +5,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.components.ChordPosition
+import com.unipi.george.chordshub.models.ChordPosition
 import com.unipi.george.chordshub.models.SongData
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.Query
+import com.unipi.george.chordshub.models.SongLine
 
 class FirestoreRepository(private val firestore: FirebaseFirestore) {
 
@@ -47,62 +48,72 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
             val title = document.getString("title")
             val artist = document.getString("artist")
             val key = document.getString("key")
-            val lyrics = document.get("lyrics") as? List<String>
+            val bpm = document.getLong("bpm")?.toInt()
             val genres = document.get("genres") as? List<String>
+            val createdAt = document.getString("createdAt")
+            val creatorId = document.getString("creatorId")
 
-            println("Lyrics: $lyrics")
-            println("Artist: $artist")
-            println("Key: $key")
-            println("Title: $title")
-            println("Document: $document")
-            println("Document ID: ${document.id}")
-            println("Document Data: ${document.data}")
-            println("Genres: $genres")
+            // 🔹 Μετατροπή lyrics σε List<SongLine>
+            val lyricsList = document.get("lyrics") as? List<Map<String, Any>>
+            val lyrics = lyricsList?.map { item ->
+                SongLine(
+                    lineNumber = (item["lineNumber"] as? Long)?.toInt() ?: 0,
+                    text = item["text"] as? String ?: "",
+                    chords = (item["chords"] as? List<Map<String, Any>>)?.mapNotNull { chord ->
+                        val chordName = chord["chord"] as? String
+                        val position = (chord["position"] as? Long)?.toInt()
+                        if (chordName != null && position != null) ChordPosition(chordName, position) else null
+                    } ?: emptyList()
+                )
+            } ?: emptyList()
 
-            val chordsList = document.get("chords") as? List<Map<String, Any>>
-            val chords = chordsList?.mapNotNull { item ->
-                val chord = item["chord"] as? String
-                val position = when (val pos = item["position"]) {
-                    is Long -> pos.toInt()
-                    is String -> pos.toIntOrNull()
-                    else -> null
-                }
-                if (chord != null && position != null) {
-                    ChordPosition(chord, position)
-                } else {
-                    null
-                }
-            }
-            println("Parsed Chords: $chords")
-
-            SongData(title, artist, key, lyrics, chords, genres)
+            // ✅ Δημιουργία SongData με τη σωστή δομή
+            SongData(
+                title = title,
+                artist = artist,
+                key = key,
+                bpm = bpm,
+                genres = genres,
+                createdAt = createdAt,
+                creatorId = creatorId,
+                lyrics = lyrics // Τώρα είναι List<SongLine>
+            )
         } catch (e: Exception) {
-            Log.e("Firestore", "Error retrieving song data", e)
+            println("❌ Firestore Error: ${e.message}")
             null
         }
     }
 
 
-    //Για προσωρινη χρήση
+
     suspend fun addSongData(songId: String, songData: SongData) {
         val songMap = hashMapOf(
             "title" to songData.title,
             "artist" to songData.artist,
             "key" to songData.key,
-            "lyrics" to songData.lyrics,
-            "chords" to songData.chords?.map {
-                mapOf("chord" to it.chord, "position" to it.position)
-            },
-            "genres" to songData.genres
+            "bpm" to songData.bpm,
+            "genres" to songData.genres,
+            "createdAt" to songData.createdAt,
+            "creatorId" to songData.creatorId,
+            "lyrics" to songData.lyrics?.map { line ->
+                mapOf(
+                    "lineNumber" to line.lineNumber,
+                    "text" to line.text,
+                    "chords" to line.chords.map { chord ->
+                        mapOf("chord" to chord.chord, "position" to chord.position)
+                    }
+                )
+            }
         )
 
         try {
             db.collection("songs").document(songId).set(songMap).await()
-            Log.d("Firestore", "Song added successfully: $songId")
+            Log.d("Firestore", "✅ Song added successfully: $songId")
         } catch (e: Exception) {
-            Log.e("Firestore", "Error adding song", e)
+            Log.e("Firestore", "❌ Error adding song", e)
         }
     }
+
 
     fun getFilteredSongs(filter: String, callback: (List<Pair<String, String>>) -> Unit) {
         println("🔍 Querying Firestore with filter: $filter")
@@ -131,5 +142,40 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 println("❌ Firestore error: ${exception.message}")
             }
     }
+
+
+    fun searchSongs(query: String, callback: (List<Pair<String, String>>) -> Unit) {
+        if (query.isEmpty()) {
+            callback(emptyList())
+            return
+        }
+
+        db.collection("songs")
+            .get()
+            .addOnSuccessListener { result ->
+                val queryLower = query.lowercase()
+
+                val results = result.documents.mapNotNull { doc ->
+                    val title = doc.getString("title") ?: ""
+                    val artist = doc.getString("artist") ?: "Άγνωστος Καλλιτέχνης"
+
+                    // Μετατροπή σε πεζά για case-insensitive αναζήτηση
+                    if (title.lowercase().contains(queryLower) || artist.lowercase().contains(queryLower)) {
+                        title to artist
+                    } else {
+                        null
+                    }
+                }
+
+                callback(results)
+            }
+            .addOnFailureListener { exception ->
+                println("Error fetching search results: ${exception.message}")
+                callback(emptyList())
+            }
+    }
+
+
+
 
 }
