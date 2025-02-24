@@ -1,5 +1,6 @@
 package com.unipi.george.chordshub.repository
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -9,6 +10,7 @@ import com.unipi.george.chordshub.models.ChordPosition
 import com.unipi.george.chordshub.models.SongData
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.Query
+import com.google.firebase.storage.FirebaseStorage
 import com.unipi.george.chordshub.models.SongLine
 
 class FirestoreRepository(private val firestore: FirebaseFirestore) {
@@ -42,12 +44,19 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
             }
     }
 
-    suspend fun getSongDataAsync(): SongData? {
+    suspend fun getSongDataAsync(songId: String): SongData? {
+        Log.d("Firestore", "Fetching song data for ID: $songId")
+
         return try {
-            val document = songDocument?.get()?.await() ?: return null
-            val title = document.getString("title")
-            val artist = document.getString("artist")
-            val key = document.getString("key")
+            val document = db.collection("songs").document(songId).get().await()
+            if (!document.exists()) {
+                Log.e("Firestore", "❌ No song found with ID: $songId")
+                return null
+            }
+
+            val title = document.getString("title") ?: "Unknown Title"
+            val artist = document.getString("artist") ?: "Unknown Artist"
+            val key = document.getString("key") ?: "Unknown Key"
             val bpm = document.getLong("bpm")?.toInt()
             val genres = document.get("genres") as? List<String>
             val createdAt = document.getString("createdAt")
@@ -67,8 +76,8 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 )
             } ?: emptyList()
 
-            // ✅ Δημιουργία SongData με τη σωστή δομή
-            SongData(
+            Log.d("Firestore", "✅ Song loaded successfully: $title")
+            return SongData(
                 title = title,
                 artist = artist,
                 key = key,
@@ -76,11 +85,11 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 genres = genres,
                 createdAt = createdAt,
                 creatorId = creatorId,
-                lyrics = lyrics // Τώρα είναι List<SongLine>
+                lyrics = lyrics
             )
         } catch (e: Exception) {
-            println("❌ Firestore Error: ${e.message}")
-            null
+            Log.e("Firestore", "❌ Firestore Error: ${e.message}")
+            return null
         }
     }
 
@@ -144,7 +153,8 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
     }
 
 
-    fun searchSongs(query: String, callback: (List<Pair<String, String>>) -> Unit) {
+
+    fun searchSongs(query: String, callback: (List<Triple<String, String, String>>) -> Unit) {
         if (query.isEmpty()) {
             callback(emptyList())
             return
@@ -158,24 +168,28 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 val results = result.documents.mapNotNull { doc ->
                     val title = doc.getString("title") ?: ""
                     val artist = doc.getString("artist") ?: "Άγνωστος Καλλιτέχνης"
+                    val docId = doc.id // 🔹 Αποθηκεύουμε το σωστό `documentId`
 
-                    // Μετατροπή σε πεζά για case-insensitive αναζήτηση
-                    if (title.lowercase().contains(queryLower) || artist.lowercase().contains(queryLower)) {
-                        title to artist
-                    } else {
-                        null
+                    val lyricsList = doc.get("lyrics") as? List<Map<String, Any>>
+                    val lyricsMatch = lyricsList?.firstOrNull { line ->
+                        val lineText = line["text"] as? String ?: ""
+                        lineText.lowercase().contains(queryLower)
+                    }
+
+                    when {
+                        title.lowercase().contains(queryLower) -> Triple(title, docId, "Τίτλος")
+                        artist.lowercase().contains(queryLower) -> Triple(title, docId, "Καλλιτέχνης")
+                        lyricsMatch != null -> Triple(title, docId, "Στίχος")
+                        else -> null
                     }
                 }
 
                 callback(results)
             }
             .addOnFailureListener { exception ->
-                println("Error fetching search results: ${exception.message}")
+                Log.e("Firestore", "❌ Error fetching search results: ${exception.message}")
                 callback(emptyList())
             }
     }
-
-
-
 
 }

@@ -7,10 +7,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.fullNameState
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
@@ -25,10 +27,9 @@ import com.unipi.george.chordshub.viewmodels.SearchViewModel
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    isMenuOpen: MutableState<Boolean>,
-    isFullScreen: MutableState<Boolean>,
-    homeViewModel: HomeViewModel
+    isFullScreen: MutableState<Boolean>
 ) {
+    val homeViewModel: HomeViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route
@@ -38,27 +39,31 @@ fun NavGraph(
             LaunchedEffect(Unit) { selectedFilter = "All" }
 
             HomeScreen(
-                navController = navController,
                 isFullScreen = isFullScreen.value,
                 onFullScreenChange = { isFullScreen.value = it },
                 homeViewModel = homeViewModel,
-                selectedFilter = selectedFilter
+                selectedFilter = selectedFilter,
+                navController
             )
         }
 
         composable(Screen.Search.route) {
             val searchViewModel: SearchViewModel = viewModel()
-            SearchScreen(navController, searchViewModel)
+
+            SearchScreen(
+                viewModel = searchViewModel,
+                painter = painterResource(id = R.drawable.user_icon), // ✅ Περνάμε το εικονίδιο
+                onMenuClick = { /* Εδώ βάζεις το άνοιγμα του μενού */ }
+            )
         }
 
+
         composable(Screen.Library.route) {
-            LibraryScreen(navController)
+            LibraryScreen()
         }
 
         composable(Screen.Profile.route) {
             ProfileScreen(
-                navController = navController,
-                isMenuOpen = isMenuOpen,
                 onLogout = {
                     AuthRepository.logoutUser()
                     isUserLoggedInState.value = false

@@ -6,13 +6,13 @@ data class ChordPosition(
 )
 
 data class SongLine(
-    val lineNumber: Int,  // Προσθήκη αριθμού γραμμής για sorting
-    val text: String,      // Το περιεχόμενο του στίχου
-    val chords: List<ChordPosition> = emptyList()  // Οι συγχορδίες σε αυτή τη γραμμή
+    val lineNumber: Int,
+    val text: String,
+    val chords: List<ChordPosition> = emptyList()
 )
 
 data class Chord(
     val chordName: String,
-    val positions: String,  // Οι θέσεις των δαχτύλων (π.χ. "x32010")
-    val fingers: String     // Το πώς πρέπει να τοποθετηθούν τα δάχτυλα
+    val positions: String,
+    val fingers: String
 )

@@ -1,5 +1,6 @@
 package com.unipi.george.chordshub.screens.main
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,23 +10,27 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.R
+import com.unipi.george.chordshub.components.TopBar
 import com.unipi.george.chordshub.repository.FirestoreRepository
+import com.unipi.george.chordshub.screens.seconds.DetailedSongView
 import com.unipi.george.chordshub.viewmodels.HomeViewModel
 
 @Composable
 fun HomeScreen(
-    navController: NavController,
     isFullScreen: Boolean,
     onFullScreenChange: (Boolean) -> Unit,
     homeViewModel: HomeViewModel,
-    selectedFilter: String = "All"
+    selectedFilter: String = "All",
+    navController: NavController
 ) {
     val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
-    val selectedSong by homeViewModel.selectedSong.collectAsState()
+    val selectedSongId by homeViewModel.selectedSongId.collectAsState() // ✅ Χρησιμοποιούμε το songId
     val coroutineScope = rememberCoroutineScope()
     var songList by remember { mutableStateOf(emptyList<Pair<String, String>>()) }
     val selectedTitle = remember { mutableStateOf<String?>(null) }
@@ -36,20 +41,41 @@ fun HomeScreen(
         }
     }
 
-    when {
-        selectedSong == null && songList.isEmpty() -> LoadingView()
-        selectedSong == null -> CardsView(songList, repository, homeViewModel, coroutineScope, selectedTitle)
-        else -> DetailedSongView(
-            isFullScreen = isFullScreen,
-            onFullScreenChange = onFullScreenChange,
-            onBack = {
-                homeViewModel.clearSelectedSong()
-                onFullScreenChange(false)
-            },
-            repository = repository
-        )
+    Log.d("HomeScreen", "Current selectedSongId: $selectedSongId") // ✅ DEBUGGING
+
+    Scaffold(
+        topBar = {
+            TopBar(
+                fullName = "User Name",
+                painter = painterResource(id = R.drawable.user_icon),
+                navController = navController,
+                selectedSongId = selectedSongId, // ✅ Χρησιμοποιούμε το `selectedSongId` για να κρύψουμε τα άλλα στοιχεία
+                onMenuClick = { /* Άνοιγμα μενού */ },
+                onFilterChange = { /* Ενημέρωση φίλτρου */ }
+            )
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            when {
+                selectedSongId == null && songList.isEmpty() -> LoadingView()
+                selectedSongId == null -> CardsView(songList, repository, homeViewModel, coroutineScope, selectedTitle)
+                else -> DetailedSongView(
+                    songId = selectedSongId!!,
+                    isFullScreen = isFullScreen,
+                    onFullScreenChange = onFullScreenChange,
+                    onBack = {
+                        homeViewModel.clearSelectedSong()
+                        onFullScreenChange(false)
+                    },
+                    repository = repository
+                )
+            }
+        }
     }
+
+
 }
+
 
 @Composable
 fun LoadingView() {
@@ -92,15 +118,9 @@ fun SongCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                repository.setSongId(songId)
+                Log.d("HomeScreen", "Selected song ID: $songId") // ✅ DEBUGGING
+                homeViewModel.selectSong(songId) // ✅ Ενημερώνουμε το ID του τραγουδιού
                 selectedTitle.value = title
-                coroutineScope.launch {
-                    val songData = repository.getSongDataAsync()
-                    songData?.let {
-                        val songLines = it.lyrics ?: listOf() // Εξασφαλίζουμε ότι δεν είναι null
-                        homeViewModel.setSelectedSong(songLines, it.artist ?: "Unknown Artist")
-                    }
-                }
             },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -115,4 +135,6 @@ fun SongCard(
         }
     }
 }
+
+
 

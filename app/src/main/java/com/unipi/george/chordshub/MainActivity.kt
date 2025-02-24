@@ -5,10 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -16,10 +20,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -40,8 +48,7 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.navigation.NavGraph
-import com.unipi.george.chordshub.screens.main.EditProfileScreen
-import com.unipi.george.chordshub.screens.main.ProfileScreen
+import com.unipi.george.chordshub.screens.seconds.EditProfileScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -53,17 +60,15 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val isUserLoggedInState = AuthRepository.isUserLoggedInState
                 val fullNameState = AuthRepository.fullNameState
-                val homeViewModel: HomeViewModel = viewModel()
 
                 if (isUserLoggedInState.value) {
-                    LoggedInScaffold(navController, fullNameState, isUserLoggedInState, homeViewModel)
+                    LoggedInScaffold(navController, fullNameState)
                 } else {
                     LoggedOutNavHost(navController, isUserLoggedInState, fullNameState)
                 }
             }
         }
     }
-
     private fun addDataForFurElise() {
         val repository = FirestoreRepository(FirebaseFirestore.getInstance())
 
@@ -91,6 +96,146 @@ class MainActivity : ComponentActivity() {
                         lineNumber = 3,
                         text = "Für Elise, section 3 dramatic part",
                         chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
+                    ),
+                    SongLine(
+                        lineNumber = 3,
+                        text = "Für Elise, section 3 dramatic part",
+                        chords = listOf(ChordPosition("Am", 0), ChordPosition("D", 12), ChordPosition("G", 20), ChordPosition("E", 30))
                     )
                 )
             )
@@ -98,19 +243,16 @@ class MainActivity : ComponentActivity() {
             repository.addSongData("fur_elise_beethoven", songData)
         }
     }
-
 }
 
 @Composable
 fun LoggedInScaffold(
     navController: NavHostController,
-    fullNameState: MutableState<String?>,
-    isUserLoggedInState: MutableState<Boolean>,
-    homeViewModel: HomeViewModel
+    fullNameState: MutableState<String?>
 ) {
+    val homeViewModel: HomeViewModel = viewModel()
     val isMenuOpen = remember { mutableStateOf(false) }
     val isFullScreen = remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
     var selectedFilter by remember { mutableStateOf("All") }
 
     BackHandler(enabled = isMenuOpen.value) {
@@ -119,15 +261,15 @@ fun LoggedInScaffold(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            TopBar(
+           /* TopBar(
                 fullName = fullNameState.value ?: "User",
                 painter = painterResource(id = R.drawable.user_icon),
                 navController = navController,
                 isVisible = !isFullScreen.value,
-                onMenuClick = { isMenuOpen.value = !isMenuOpen.value },
+                onMenuClick = { isMenuOpen.value = true },
                 selectedSong = homeViewModel.selectedSong.collectAsState().value?.firstOrNull(),
                 onFilterChange = { selectedFilter = it }
-            )
+            )*/
 
             Scaffold(
                 bottomBar = {
@@ -137,17 +279,43 @@ fun LoggedInScaffold(
                 }
             ) { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding)) {
-                    NavGraph(navController, isMenuOpen, isFullScreen, homeViewModel)
+                    NavGraph(navController, isFullScreen)
                 }
             }
         }
-    }
-    AnimatedVisibility(visible = isMenuOpen.value) {
-        EditProfileScreen(
-            navController = navController,
-            currentUsername = AuthRepository.getFullName() ?: "User",
-            currentProfileImage = R.drawable.edit_user_image
-        )
+        AnimatedVisibility(visible = isMenuOpen.value) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        onClick = { isMenuOpen.value = false },
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = 0.99f }
+                        .blur(16.dp)
+                        .background(Color.Black.copy(alpha = 0.2f))
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium)
+                        .padding(16.dp)
+                ) {
+                    EditProfileScreen(
+                        navController = navController,
+                        userId = AuthRepository.getUserId() ?: "",
+                        onDismiss = { isMenuOpen.value = false }
+                    )
+                }
+            }
+        }
+
+
     }
 }
 

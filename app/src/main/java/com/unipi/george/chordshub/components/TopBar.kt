@@ -39,36 +39,58 @@ import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.ui.theme.Blue40
 import com.unipi.george.chordshub.ui.theme.checkedFilter
 import com.unipi.george.chordshub.ui.theme.filterColor
-
 @Composable
 fun TopBar(
     fullName: String,
     painter: Painter,
     navController: NavController,
-    isVisible: Boolean,
+    selectedSongId: String?, // ✅ Προσθέτουμε το `selectedSongId`
     onMenuClick: () -> Unit,
-    selectedSong: SongLine?,
     onFilterChange: (String) -> Unit
 ) {
-    if (isVisible) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    var selectedFilter by remember { mutableStateOf("All") }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(color = Blue40)
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CircularImageView(painter = painter, onClick = { onMenuClick() })
-            Spacer(modifier = Modifier.width(12.dp))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = Blue40)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // ✅ Το User Icon παραμένει πάντα ορατό
+        CircularImageViewSmall(painter = painter, onClick = { onMenuClick() })
+        Spacer(modifier = Modifier.width(12.dp))
 
-            if (currentRoute == "Home") {
-                if (selectedSong == null) {
-                    FilterRow(onFilterChange = onFilterChange)
+        // ✅ Κρύβουμε τα υπόλοιπα στοιχεία του TopBar αν είναι ενεργή η DetailedSongView
+        if (selectedSongId == null && currentRoute == "Home") {
+            FilterRow(
+                selectedFilter = selectedFilter,
+                onFilterChange = {
+                    selectedFilter = it
+                    onFilterChange(it)
                 }
-            }
+            )
+        }
+    }
+}
+
+
+
+@Composable
+fun FilterRow(selectedFilter: String, onFilterChange: (String) -> Unit) {
+    val scrollState = rememberScrollState()
+    val filters = listOf("All", "Jazz", "Metal", "Classical", "Britpop", "Pop", "Rock")
+
+    Row(modifier = Modifier.horizontalScroll(scrollState)) {
+        filters.forEach { filter ->
+            FilterButton(
+                text = filter,
+                isSelected = filter == selectedFilter,
+                onClick = { onFilterChange(filter) }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
@@ -96,37 +118,18 @@ fun FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun CircularImageView(painter: Painter, onClick: () -> Unit) {
+fun CircularImageViewSmall(painter: Painter, onClick: () -> Unit) {
     Image(
         painter = painter,
-        stringResource(R.string.circular_image_description),
+        contentDescription = stringResource(R.string.circular_image_description),
         modifier = Modifier
-            .size(30.dp)
+            .size(30.dp) // ✅ Μικρό εικονίδιο
             .clip(CircleShape)
             .border(2.dp, Color.Gray, CircleShape)
             .clickable { onClick() }
     )
 }
 
-@Composable
-fun FilterRow(onFilterChange: (String) -> Unit) {
-    var selectedFilter by remember { mutableStateOf("All") }
-    val scrollState = rememberScrollState()
-    val filters = listOf("All", "Jazz", "Metal", "Classical", "Britpop", "Pop", "Rock")
 
-    Row(modifier = Modifier.horizontalScroll(scrollState)) {
-        filters.forEach { filter ->
-            FilterButton(
-                text = filter,
-                isSelected = filter == selectedFilter,
-                onClick = {
-                    selectedFilter = filter
-                    onFilterChange(filter)
-                }
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-    }
-}
 
 

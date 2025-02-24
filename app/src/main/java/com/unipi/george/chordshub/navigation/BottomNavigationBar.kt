@@ -42,11 +42,9 @@ fun BottomNavigationBar(navController: NavHostController) {
                 selected = currentRoute == screen.route,
                 onClick = {
                     navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
+                        popUpTo(screen.route) { inclusive = true } // 🔥 Διαγράφει και ξαναφορτώνει τη σελίδα
                         launchSingleTop = true
-                        restoreState = true
+                        restoreState = false
                     }
                 }
             )

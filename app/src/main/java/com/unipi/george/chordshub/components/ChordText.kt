@@ -1,5 +1,6 @@
 package com.unipi.george.chordshub.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicText
@@ -14,6 +15,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.Snackbar
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
@@ -41,35 +44,32 @@ fun ChordText(songLine: SongLine, onChordClick: (String) -> Unit) {
 
             // Προσθήκη Clickable συγχορδίας
             pushStringAnnotation(tag = "chord", annotation = chord.chord)
-            withStyle(style = SpanStyle(color = Color.Red)) {
+            withStyle(style = SpanStyle(color = Color.Red, fontSize = 18.sp)) {
                 append(chord.chord)
             }
             pop()
 
-            currentPos += chord.chord.length + 2
+            currentPos += chord.chord.length + 1
         }
 
         // Προσθήκη στίχων μετά τις συγχορδίες
         append("\n$text")
     }
 
-    // Text με pointerInput για clickable συγχορδίες
-    BasicText(
+    // Χρησιμοποιούμε `ClickableText` για πιο αξιόπιστο χειρισμό των taps
+    ClickableText(
         text = annotatedString,
         style = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.Start),
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures { tapOffset: Offset ->
-                val offsetInt = tapOffset.x.toInt() // Παίρνουμε μόνο το x (οριζόντια θέση)
+        modifier = Modifier.fillMaxWidth().padding(4.dp),
+        onClick = { offset ->
+            val clickedAnnotations = annotatedString.getStringAnnotations(
+                tag = "chord",
+                start = offset,
+                end = offset
+            )
 
-                val clickedAnnotations = annotatedString.getStringAnnotations(
-                    tag = "chord",
-                    start = offsetInt,
-                    end = offsetInt
-                )
-
-                if (clickedAnnotations.isNotEmpty()) {
-                    onChordClick(clickedAnnotations.first().item)
-                }
+            if (clickedAnnotations.isNotEmpty()) {
+                onChordClick(clickedAnnotations.first().item)
             }
         }
     )
@@ -77,8 +77,7 @@ fun ChordText(songLine: SongLine, onChordClick: (String) -> Unit) {
 
 @Composable
 fun SongDisplay(song: SongLine) {
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedChord by remember { mutableStateOf<Chord?>(null) }
+    val snackbarHostState = remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -90,16 +89,19 @@ fun SongDisplay(song: SongLine) {
         ChordText(
             songLine = song,
             onChordClick = { chordName ->
-                selectedChord = fetchChordDetails(chordName)
-                showDialog = true
+                snackbarHostState.value = "Επιλέξατε: $chordName"
             }
         )
 
-        selectedChord?.let { chord ->
-            if (showDialog) {
-                ChordDialog(chord = chord, onDismiss = { showDialog = false })
+        snackbarHostState.value?.let { message ->
+            Snackbar(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                action = {
+                    Text("OK", modifier = Modifier.clickable { snackbarHostState.value = null })
+                }
+            ) {
+                Text(message)
             }
         }
     }
 }
-

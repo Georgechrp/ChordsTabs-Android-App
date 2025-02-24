@@ -126,6 +126,18 @@ object AuthRepository {
             }
     }
 
+    fun saveUsername(userId: String, newUsername: String, onResult: (Boolean, String?) -> Unit) {
+        firestore.collection("users").document(userId)
+            .update("fullName", newUsername)
+            .addOnSuccessListener {
+                fullNameState.value = newUsername
+                onResult(true, null)
+            }
+            .addOnFailureListener { exception ->
+                logError("Failed to update username in Firestore", exception)
+                onResult(false, handleFirebaseException(exception))
+            }
+    }
 
     private fun handleFirebaseException(exception: Exception?): String {
         return exception?.localizedMessage ?: "An unexpected error occurred"

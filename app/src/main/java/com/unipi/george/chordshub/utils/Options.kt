@@ -1,27 +1,37 @@
 package com.unipi.george.chordshub.utils
 
-/*
 
-fun saveCardContentAsPdf(context: android.content.Context, title: String, lyrics: List<SongLine>) {
-    val pdfDocument = android.graphics.pdf.PdfDocument()
+import android.content.ContentValues
+import android.content.Context
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.widget.Toast
+import com.unipi.george.chordshub.models.SongLine
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
-    val pageInfo = android.graphics.pdf.PdfDocument.PageInfo.Builder(595, 842, 1).create()
+fun saveCardContentAsPdf(context: Context, title: String, lyrics: List<SongLine>) {
+    val pdfDocument = PdfDocument()
+    val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
     val page = pdfDocument.startPage(pageInfo)
-
     val canvas = page.canvas
-    val paint = android.graphics.Paint()
+    val paint = Paint()
 
-    // Σχεδίαση Τίτλου
+    // ✅ Σχεδίαση τίτλου
     paint.textSize = 20f
     paint.isFakeBoldText = true
     canvas.drawText(title, 50f, 50f, paint)
 
-    // Σχεδίαση Στίχων με Συγχορδίες
+    // ✅ Σχεδίαση στίχων με συγχορδίες
     paint.textSize = 16f
     paint.isFakeBoldText = false
     var yPosition = 100f
     lyrics.forEach { line ->
-        canvas.drawText(line.lyrics, 50f, yPosition, paint)
+        canvas.drawText(line.text, 50f, yPosition, paint) // ✅ Διόρθωση από line.lyrics σε line.text
         yPosition += 20f
         line.chords.forEach { chord ->
             canvas.drawText(" - ${chord.chord} at ${chord.position}", 70f, yPosition, paint)
@@ -32,25 +42,36 @@ fun saveCardContentAsPdf(context: android.content.Context, title: String, lyrics
 
     pdfDocument.finishPage(page)
 
-    // Αποθήκευση στο φάκελο Downloads
-    val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
-    val file = java.io.File(downloadsDir, "$title.pdf")
+    val fileName = "$title.pdf"
+
     try {
-        pdfDocument.writeTo(java.io.FileOutputStream(file))
+        val outputStream: OutputStream?
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // ✅ Για Android 10+ χρησιμοποιούμε MediaStore
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS)
+            }
+            val uri = context.contentResolver.insert(MediaStore.Files.getContentUri("external"), contentValues)
+            outputStream = uri?.let { context.contentResolver.openOutputStream(it) }
+        } else {
+            // ✅ Για παλαιότερα Android αποθηκεύουμε στο Downloads
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val file = File(downloadsDir, fileName)
+            outputStream = FileOutputStream(file)
+        }
 
-        val uri = android.net.Uri.fromFile(file)
-        val intent = android.content.Intent(android.content.Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-        intent.data = uri
-        context.sendBroadcast(intent)
-
-
-        Toast.makeText(context, "PDF saved to Downloads: ${file.absolutePath}", Toast.LENGTH_LONG).show()
+        outputStream?.use {
+            pdfDocument.writeTo(it)
+            Toast.makeText(context, "✅ PDF saved: $fileName", Toast.LENGTH_LONG).show()
+        } ?: run {
+            Toast.makeText(context, "❌ Error saving PDF", Toast.LENGTH_LONG).show()
+        }
     } catch (e: Exception) {
-        Toast.makeText(context, "Error saving PDF: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "❌ Error: ${e.message}", Toast.LENGTH_LONG).show()
     } finally {
         pdfDocument.close()
     }
 }
-*/
-

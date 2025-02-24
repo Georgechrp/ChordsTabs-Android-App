@@ -48,7 +48,7 @@ android {
 dependencies {
 
 
-
+    implementation("com.google.firebase:firebase-storage-ktx:20.2.1")
     implementation (libs.coil.compose)
     implementation (libs.cloudinary.android)
     implementation (libs.accompanist.navigation.animation)

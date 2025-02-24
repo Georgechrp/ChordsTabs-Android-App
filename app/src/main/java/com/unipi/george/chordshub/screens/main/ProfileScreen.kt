@@ -16,7 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.unipi.george.chordshub.repository.AuthRepository
 
 @Composable
-fun ProfileScreen(navController: NavController, isMenuOpen: MutableState<Boolean>, onLogout: () -> Unit) {
+fun ProfileScreen(onLogout: () -> Unit) {
     val fullName = AuthRepository.getFullName()
     val email = AuthRepository.getUserEmail()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
@@ -34,47 +34,52 @@ fun ProfileScreen(navController: NavController, isMenuOpen: MutableState<Boolean
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        ProfileCard(fullName, email, showLogoutDialog, showDeleteDialog, deleteMessage)
-
-        if (showDeleteDialog.value) {
-            ConfirmActionDialog(
-                title = "Delete Account",
-                message = "Are you sure you want to delete your account? This action cannot be undone.",
-                onConfirm = {
-                    showDeleteDialog.value = false
-                    AuthRepository.deleteUserAccount { success, message ->
-                        if (success) {
-                            Toast.makeText(context, "Account Deleted", Toast.LENGTH_SHORT).show()
-                            AuthRepository.isUserLoggedInState.value = false
-                        } else {
-                            deleteMessage.value = message ?: "An unexpected error occurred."
-                        }
-                    }
-                },
-                onDismiss = { showDeleteDialog.value = false }
-            )
-        }
-
-        if (showLogoutDialog.value) {
-            ConfirmActionDialog(
-                title = "Logout",
-                message = "Are you sure you want to logout?",
-                onConfirm = {
-                    showLogoutDialog.value = false
-                    AuthRepository.logoutUser()
-                    onLogout()
-                },
-                onDismiss = { showLogoutDialog.value = false }
-            )
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            verticalArrangement = Arrangement.Top
+        ) {
+            ProfileCard(fullName, email, showLogoutDialog, showDeleteDialog, deleteMessage)
         }
     }
+
+    if (showDeleteDialog.value) {
+        ConfirmActionDialog(
+            title = "Delete Account",
+            message = "Are you sure you want to delete your account? This action cannot be undone.",
+            onConfirm = {
+                showDeleteDialog.value = false
+                AuthRepository.deleteUserAccount { success, message ->
+                    if (success) {
+                        Toast.makeText(context, "Account Deleted", Toast.LENGTH_SHORT).show()
+                        AuthRepository.isUserLoggedInState.value = false
+                    } else {
+                        deleteMessage.value = message ?: "An unexpected error occurred."
+                    }
+                }
+            },
+            onDismiss = { showDeleteDialog.value = false }
+        )
+    }
+
+    if (showLogoutDialog.value) {
+        ConfirmActionDialog(
+            title = "Logout",
+            message = "Are you sure you want to logout?",
+            onConfirm = {
+                showLogoutDialog.value = false
+                AuthRepository.logoutUser()
+                onLogout()
+            },
+            onDismiss = { showLogoutDialog.value = false }
+        )
+    }
 }
+
 
 @Composable
 fun ProfileCard(
@@ -96,12 +101,14 @@ fun ProfileCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             InfoRow(label = "Full Name", value = fullName)
             Divider(modifier = Modifier.padding(vertical = 4.dp))
             InfoRow(label = "Email", value = email)
 
+            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Spacer(modifier = Modifier.height(16.dp))
 
             // Logout Button
@@ -173,7 +180,7 @@ fun ConfirmActionDialog(
             Button(onClick = onConfirm) { Text("Yes") }
         },
         dismissButton = {
-            Button(onClick = onDismiss) { Text("No") }
+            Button(onClick = onDismiss) { Text("No, Thanks") }
         }
     )
 }

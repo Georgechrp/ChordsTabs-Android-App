@@ -122,7 +122,7 @@ fun UploadScreen(navController: NavController) {
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Αποθήκευση")
+                Text("Στείλε το τραγούδι")
             }
         }
     }
