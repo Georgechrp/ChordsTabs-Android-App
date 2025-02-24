@@ -47,6 +47,7 @@ android {
 
 dependencies {
 
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
     implementation("com.google.firebase:firebase-storage-ktx:20.2.1")
     implementation (libs.coil.compose)

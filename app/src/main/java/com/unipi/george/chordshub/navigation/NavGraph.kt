@@ -1,12 +1,6 @@
 package com.unipi.george.chordshub.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -16,11 +10,8 @@ import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.fullNameState
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
-import com.unipi.george.chordshub.screens.main.HomeScreen
-import com.unipi.george.chordshub.screens.main.LibraryScreen
-import com.unipi.george.chordshub.screens.main.SearchScreen
-import com.unipi.george.chordshub.screens.main.UploadScreen
-import com.unipi.george.chordshub.screens.main.ProfileScreen
+import com.unipi.george.chordshub.screens.main.*
+import com.unipi.george.chordshub.screens.seconds.ProfileMenu
 import com.unipi.george.chordshub.viewmodels.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.SearchViewModel
 
@@ -30,38 +21,47 @@ fun NavGraph(
     isFullScreen: MutableState<Boolean>
 ) {
     val homeViewModel: HomeViewModel = viewModel()
+    val searchViewModel: SearchViewModel = viewModel()
+    val isMenuOpen = remember { mutableStateOf(false) }
+
+    val painter = painterResource(id = R.drawable.user_icon)
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route
     ) {
         composable(Screen.Home.route) {
-            var selectedFilter by remember { mutableStateOf("All") }
-            LaunchedEffect(Unit) { selectedFilter = "All" }
-
             HomeScreen(
                 isFullScreen = isFullScreen.value,
                 onFullScreenChange = { isFullScreen.value = it },
                 homeViewModel = homeViewModel,
-                selectedFilter = selectedFilter,
-                navController
+                navController = navController,
+                painter = painter,
+                onMenuClick = { isMenuOpen.value = true }
             )
         }
 
         composable(Screen.Search.route) {
-            val searchViewModel: SearchViewModel = viewModel()
-
             SearchScreen(
                 viewModel = searchViewModel,
-                painter = painterResource(id = R.drawable.user_icon), // ✅ Περνάμε το εικονίδιο
-                onMenuClick = { /* Εδώ βάζεις το άνοιγμα του μενού */ }
+                painter = painter,
+                onMenuClick = { isMenuOpen.value = true }
             )
         }
-
-
-        composable(Screen.Library.route) {
-            LibraryScreen()
+        composable(Screen.Upload.route) {
+            UploadScreen(
+                navController = navController,
+                painter = painter,
+                onMenuClick = { isMenuOpen.value = true }
+            )
         }
-
+        composable(Screen.Library.route) {
+            LibraryScreen(
+                navController = navController,
+                painter = painter,
+                onMenuClick = { isMenuOpen.value = true }
+            )
+        }
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onLogout = {
@@ -72,8 +72,8 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.Upload.route) {
-            UploadScreen(navController)
-        }
     }
+
+    ProfileMenu(isMenuOpen = isMenuOpen, navController = navController)
 }
+

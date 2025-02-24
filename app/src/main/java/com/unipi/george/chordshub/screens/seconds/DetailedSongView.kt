@@ -42,9 +42,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,9 +52,16 @@ import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.models.SongData
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.utils.saveCardContentAsPdf
-
 import android.content.Context
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.platform.LocalContext
+
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import com.unipi.george.chordshub.R
+import com.unipi.george.chordshub.utils.QRCodeButton
+import com.unipi.george.chordshub.utils.QRCodeDialog
 
 
 @Composable
@@ -68,13 +73,21 @@ fun DetailedSongView(
     repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance())
 ) {
     val songDataState = remember { mutableStateOf<SongData?>(null) }
-    val currentKey = remember { mutableStateOf("C") } // ✅ Τρέχον Key
+    val currentKey = remember { mutableStateOf("C") }
     val isScrolling = remember { mutableStateOf(false) }
-    val scrollSpeed = remember { mutableStateOf(100f) }
+    val scrollSpeed = remember { mutableStateOf(30f) }
     val isSpeedControlVisible = remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val showDialog = remember { mutableStateOf(false) }
+    val showQRCodeDialog = remember { mutableStateOf(false) }
+
+    LaunchedEffect(isScrolling.value) {
+        while (isScrolling.value) {
+            listState.animateScrollBy(scrollSpeed.value)
+            kotlinx.coroutines.yield()
+        }
+    }
 
     LaunchedEffect(songId) {
         Log.d("DetailedSongView", "LaunchedEffect triggered for songId: $songId")
@@ -84,10 +97,9 @@ fun DetailedSongView(
     }
 
     fun changeKey(shift: Int) {
-        val newKey = getNewKey(currentKey.value, shift) // ✅ Υπολογίζει το νέο Key
-        currentKey.value = newKey // ✅ Ενημερώνει το `TextField`
+        val newKey = getNewKey(currentKey.value, shift)
+        currentKey.value = newKey
 
-        // ✅ Ενημερώνουμε και τις συγχορδίες του τραγουδιού
         songDataState.value = songDataState.value?.copy(
             lyrics = songDataState.value?.lyrics?.map { line ->
                 line.copy(
@@ -98,7 +110,6 @@ fun DetailedSongView(
             }
         )
     }
-
 
     BackHandler {
         if (isFullScreen) {
@@ -144,11 +155,19 @@ fun DetailedSongView(
                             isFullScreen = isFullScreen,
                             modifier = Modifier.weight(1f)
                         )
-                        OptionsPlace(isScrolling, isSpeedControlVisible, showDialog)
+                        OptionsPlace(
+                            isScrolling = isScrolling,
+                            isSpeedControlVisible = isSpeedControlVisible,
+                            showDialog = showDialog,
+                            showQRCodeDialog = showQRCodeDialog
+                        )
+
                     }
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     ControlSpeed(scrollSpeed, isSpeedControlVisible)
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     SongLyricsView(songLines = songData.lyrics ?: emptyList(), listState = listState)
@@ -157,18 +176,29 @@ fun DetailedSongView(
                         showDialog = showDialog,
                         currentKey = currentKey,
                         onChangeKey = { shift -> changeKey(shift) },
-                        context = LocalContext.current, // ✅ Παίρνουμε το Context από το Composable
-                        songTitle = songDataState.value?.title ?: "Untitled", // ✅ Τίτλος τραγουδιού
-                        songLyrics = songDataState.value?.lyrics ?: emptyList() // ✅ Λίστα με τους στίχους
+                        context = LocalContext.current,
+                        songTitle = songDataState.value?.title ?: "Untitled",
+                        songLyrics = songDataState.value?.lyrics ?: emptyList()
                     )
-
-
-
+                    QRCodeDialog(showQRCodeDialog, songId)
                 }
             }
         }
     }
+    fun getNewKey(currentKey: String, shift: Int): String {
+        val notes = listOf(
+            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+        )
+
+        val index = notes.indexOfFirst { it.equals(currentKey, ignoreCase = true) }
+        if (index == -1) return currentKey
+
+        val newIndex = (index + shift + notes.size) % notes.size
+        return notes[newIndex]
+    }
 }
+
+
 
 
 @Composable
@@ -185,7 +215,7 @@ fun SongInfoPlace(title: String, artist: String, isFullScreen: Boolean, modifier
             style = MaterialTheme.typography.bodySmall.copy(
                 fontSize = if (isFullScreen) 16.sp else 14.sp,
                 textDecoration = TextDecoration.Underline,
-                color = Color.Blue
+                color = MaterialTheme.colorScheme.onSurface
             ),
             modifier = Modifier.clickable {
                 Log.d("Artist Click", "Clicked on artist: $artist")
@@ -200,9 +230,11 @@ fun SongInfoPlace(title: String, artist: String, isFullScreen: Boolean, modifier
 fun OptionsPlace(
     isScrolling: MutableState<Boolean>,
     isSpeedControlVisible: MutableState<Boolean>,
-    showDialog: MutableState<Boolean>
+    showDialog: MutableState<Boolean>,
+    showQRCodeDialog: MutableState<Boolean>
 ) {
     Row {
+
         Box(
             modifier = Modifier
                 .combinedClickable(
@@ -216,6 +248,20 @@ fun OptionsPlace(
                 contentDescription = if (isScrolling.value) "Pause Auto-Scroll" else "Start Auto-Scroll"
             )
         }
+
+        Box(
+            modifier = Modifier
+                .clickable { showQRCodeDialog.value = true }
+                .padding(3.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.generateqrcode),
+                contentDescription = "Share via QR",
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+
         IconButton(onClick = { showDialog.value = true }) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
@@ -224,6 +270,7 @@ fun OptionsPlace(
         }
     }
 }
+
 
 @Composable
 fun ControlSpeed(scrollSpeed: MutableState<Float>, isSpeedControlVisible: MutableState<Boolean>) {

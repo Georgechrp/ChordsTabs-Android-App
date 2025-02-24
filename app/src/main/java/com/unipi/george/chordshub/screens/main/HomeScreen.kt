@@ -10,13 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.components.TopBar
+import com.unipi.george.chordshub.components.AppTopBar
+import com.unipi.george.chordshub.components.FilterRow
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.screens.seconds.DetailedSongView
 import com.unipi.george.chordshub.viewmodels.HomeViewModel
@@ -26,13 +25,15 @@ fun HomeScreen(
     isFullScreen: Boolean,
     onFullScreenChange: (Boolean) -> Unit,
     homeViewModel: HomeViewModel,
-    selectedFilter: String = "All",
-    navController: NavController
+    navController: NavController,
+    painter: Painter,
+    onMenuClick: () -> Unit
 ) {
     val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
-    val selectedSongId by homeViewModel.selectedSongId.collectAsState() // ✅ Χρησιμοποιούμε το songId
+    val selectedSongId by homeViewModel.selectedSongId.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     var songList by remember { mutableStateOf(emptyList<Pair<String, String>>()) }
+    var selectedFilter by remember { mutableStateOf("All") }
     val selectedTitle = remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(selectedFilter) {
@@ -41,18 +42,22 @@ fun HomeScreen(
         }
     }
 
-    Log.d("HomeScreen", "Current selectedSongId: $selectedSongId") // ✅ DEBUGGING
-
     Scaffold(
         topBar = {
-            TopBar(
-                fullName = "User Name",
-                painter = painterResource(id = R.drawable.user_icon),
-                navController = navController,
-                selectedSongId = selectedSongId, // ✅ Χρησιμοποιούμε το `selectedSongId` για να κρύψουμε τα άλλα στοιχεία
-                onMenuClick = { /* Άνοιγμα μενού */ },
-                onFilterChange = { /* Ενημέρωση φίλτρου */ }
-            )
+            if (selectedSongId == null) {
+                AppTopBar(
+                    painter = painter,
+                    onMenuClick = onMenuClick
+                ) {
+                    Column {
+
+                        FilterRow(
+                            selectedFilter = selectedFilter,
+                            onFilterChange = { selectedFilter = it }
+                        )
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -72,9 +77,8 @@ fun HomeScreen(
             }
         }
     }
-
-
 }
+
 
 
 @Composable
@@ -118,8 +122,8 @@ fun SongCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                Log.d("HomeScreen", "Selected song ID: $songId") // ✅ DEBUGGING
-                homeViewModel.selectSong(songId) // ✅ Ενημερώνουμε το ID του τραγουδιού
+                Log.d("HomeScreen", "Selected song ID: $songId")
+                homeViewModel.selectSong(songId)
                 selectedTitle.value = title
             },
         shape = RoundedCornerShape(16.dp),

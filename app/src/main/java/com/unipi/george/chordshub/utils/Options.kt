@@ -75,3 +75,6 @@ fun saveCardContentAsPdf(context: Context, title: String, lyrics: List<SongLine>
         pdfDocument.close()
     }
 }
+
+
+

@@ -4,38 +4,22 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.firestore.FirebaseFirestore
 import com.unipi.george.chordshub.models.ChordPosition
-import com.unipi.george.chordshub.components.TopBar
 import com.unipi.george.chordshub.models.SongData
 import com.unipi.george.chordshub.navigation.BottomNavigationBar
 import com.unipi.george.chordshub.repository.AuthRepository
@@ -43,12 +27,10 @@ import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.screens.auth.LoginScreen
 import com.unipi.george.chordshub.screens.auth.SignUpScreen
 import com.unipi.george.chordshub.ui.theme.ChordsHubTheme
-import com.unipi.george.chordshub.viewmodels.HomeViewModel
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.navigation.NavGraph
-import com.unipi.george.chordshub.screens.seconds.EditProfileScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -62,7 +44,7 @@ class MainActivity : ComponentActivity() {
                 val fullNameState = AuthRepository.fullNameState
 
                 if (isUserLoggedInState.value) {
-                    LoggedInScaffold(navController, fullNameState)
+                    LoggedInScaffold(navController)
                 } else {
                     LoggedOutNavHost(navController, isUserLoggedInState, fullNameState)
                 }
@@ -247,13 +229,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LoggedInScaffold(
-    navController: NavHostController,
-    fullNameState: MutableState<String?>
+    navController: NavHostController
 ) {
-    val homeViewModel: HomeViewModel = viewModel()
     val isMenuOpen = remember { mutableStateOf(false) }
     val isFullScreen = remember { mutableStateOf(false) }
-    var selectedFilter by remember { mutableStateOf("All") }
 
     BackHandler(enabled = isMenuOpen.value) {
         isMenuOpen.value = false
@@ -261,16 +240,6 @@ fun LoggedInScaffold(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-           /* TopBar(
-                fullName = fullNameState.value ?: "User",
-                painter = painterResource(id = R.drawable.user_icon),
-                navController = navController,
-                isVisible = !isFullScreen.value,
-                onMenuClick = { isMenuOpen.value = true },
-                selectedSong = homeViewModel.selectedSong.collectAsState().value?.firstOrNull(),
-                onFilterChange = { selectedFilter = it }
-            )*/
-
             Scaffold(
                 bottomBar = {
                     if (!isFullScreen.value) {
@@ -283,38 +252,6 @@ fun LoggedInScaffold(
                 }
             }
         }
-        AnimatedVisibility(visible = isMenuOpen.value) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        onClick = { isMenuOpen.value = false },
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer { alpha = 0.99f }
-                        .blur(16.dp)
-                        .background(Color.Black.copy(alpha = 0.2f))
-                )
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium)
-                        .padding(16.dp)
-                ) {
-                    EditProfileScreen(
-                        navController = navController,
-                        userId = AuthRepository.getUserId() ?: "",
-                        onDismiss = { isMenuOpen.value = false }
-                    )
-                }
-            }
-        }
-
 
     }
 }

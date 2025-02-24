@@ -4,11 +4,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.components.AppTopBar
+import com.unipi.george.chordshub.components.CircularImageViewSmall
 import com.unipi.george.chordshub.models.ChordPosition
 import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.models.SongData
@@ -18,7 +22,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UploadScreen(navController: NavController) {
+fun UploadScreen(navController: NavController, painter: Painter, onMenuClick: () -> Unit) {
     val repository = FirestoreRepository(FirebaseFirestore.getInstance())
     val coroutineScope = rememberCoroutineScope()
 
@@ -31,7 +35,12 @@ fun UploadScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Προσθήκη Τραγουδιού") })
+            AppTopBar(
+                painter = painter,
+                onMenuClick = onMenuClick
+            ) {
+                Text("Προσθήκη Τραγουδιού", style = MaterialTheme.typography.headlineSmall)
+            }
         }
     ) { innerPadding ->
         Column(
