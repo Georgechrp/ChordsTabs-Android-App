@@ -11,14 +11,16 @@ import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.fullNameState
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
 import com.unipi.george.chordshub.screens.main.*
+import com.unipi.george.chordshub.screens.seconds.ArtistScreen
 import com.unipi.george.chordshub.screens.seconds.ProfileMenu
 import com.unipi.george.chordshub.viewmodels.HomeViewModel
+import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.SearchViewModel
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    isFullScreen: MutableState<Boolean>
+    mainViewModel: MainViewModel
 ) {
     val homeViewModel: HomeViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
@@ -32,8 +34,8 @@ fun NavGraph(
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
-                isFullScreen = isFullScreen.value,
-                onFullScreenChange = { isFullScreen.value = it },
+                isFullScreen = mainViewModel.isFullScreen.value,
+                onFullScreenChange = { mainViewModel.setFullScreen(it) },
                 homeViewModel = homeViewModel,
                 navController = navController,
                 painter = painter,
@@ -45,7 +47,10 @@ fun NavGraph(
             SearchScreen(
                 viewModel = searchViewModel,
                 painter = painter,
-                onMenuClick = { isMenuOpen.value = true }
+                onMenuClick = { isMenuOpen.value = true },
+                navController = navController,
+                isFullScreen = mainViewModel.isFullScreen.value,
+                onFullScreenChange = { mainViewModel.setFullScreen(it) }
             )
         }
         composable(Screen.Upload.route) {
@@ -71,6 +76,13 @@ fun NavGraph(
                 }
             )
         }
+
+        composable("artist/{artistName}") { backStackEntry ->
+            val artistName = backStackEntry.arguments?.getString("artistName") ?: "Άγνωστος Καλλιτέχνης"
+            ArtistScreen(artistName = artistName, navController = navController)
+        }
+
+
 
     }
 

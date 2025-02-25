@@ -1,18 +1,19 @@
 package com.unipi.george.chordshub.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 
 @Composable
-fun BottomNavigationBar(navController: NavHostController) {
+fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         Screen.Home,
         Screen.Search,
@@ -23,7 +24,8 @@ fun BottomNavigationBar(navController: NavHostController) {
 
     NavigationBar(
         containerColor = Color.Transparent,
-        tonalElevation = 0.dp
+        tonalElevation = 0.dp,
+        modifier = Modifier.padding(bottom = 12.dp)
     ){
         items.forEach { screen ->
             val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route

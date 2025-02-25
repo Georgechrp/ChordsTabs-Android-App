@@ -72,7 +72,8 @@ fun HomeScreen(
                         homeViewModel.clearSelectedSong()
                         onFullScreenChange(false)
                     },
-                    repository = repository
+                    repository = repository,
+                    navController = navController
                 )
             }
         }

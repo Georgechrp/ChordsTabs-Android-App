@@ -59,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.utils.QRCodeButton
 import com.unipi.george.chordshub.utils.QRCodeDialog
@@ -70,7 +71,9 @@ fun DetailedSongView(
     isFullScreen: Boolean,
     onFullScreenChange: (Boolean) -> Unit,
     onBack: () -> Unit,
-    repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance())
+    repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance()),
+    navController: NavController
+
 ) {
     val songDataState = remember { mutableStateOf<SongData?>(null) }
     val currentKey = remember { mutableStateOf("C") }
@@ -153,6 +156,7 @@ fun DetailedSongView(
                             title = songData.title ?: "No Title",
                             artist = songData.artist ?: "Unknown Artist",
                             isFullScreen = isFullScreen,
+                            navController ,
                             modifier = Modifier.weight(1f)
                         )
                         OptionsPlace(
@@ -200,9 +204,14 @@ fun DetailedSongView(
 
 
 
-
 @Composable
-fun SongInfoPlace(title: String, artist: String, isFullScreen: Boolean, modifier: Modifier = Modifier) {
+fun SongInfoPlace(
+    title: String,
+    artist: String,
+    isFullScreen: Boolean,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = title,
@@ -215,14 +224,15 @@ fun SongInfoPlace(title: String, artist: String, isFullScreen: Boolean, modifier
             style = MaterialTheme.typography.bodySmall.copy(
                 fontSize = if (isFullScreen) 16.sp else 14.sp,
                 textDecoration = TextDecoration.Underline,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.primary
             ),
             modifier = Modifier.clickable {
-                Log.d("Artist Click", "Clicked on artist: $artist")
+                navController.navigate("artist/$artist")
             }
         )
     }
 }
+
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -336,21 +346,21 @@ fun SongLyricsView(songLines: List<SongLine>, listState: LazyListState) {
 @Composable
 fun OptionsDialog(
     showDialog: MutableState<Boolean>,
-    currentKey: MutableState<String>, // ✅ Το key ως MutableState
-    onChangeKey: (Int) -> Unit, // ✅ Συνάρτηση για αλλαγή Key
-    context: Context, // ✅ Για αποθήκευση ως PDF
+    currentKey: MutableState<String>,
+    onChangeKey: (Int) -> Unit,
+    context: Context,
     songTitle: String,
     songLyrics: List<SongLine>
 ) {
     if (showDialog.value) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
-            title = { Text("Επιλογές") }, // ✅ Ο τίτλος παραμένει στην κορυφή
+            title = { Text("Επιλογές") },
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Αλλαγή Key:", fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
 
-                    // ✅ Πεδίο που εμφανίζει το τρέχον Key και επιτρέπει την αλλαγή του
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,

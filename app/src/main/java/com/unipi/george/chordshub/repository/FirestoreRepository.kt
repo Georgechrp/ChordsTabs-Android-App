@@ -93,8 +93,6 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
         }
     }
 
-
-
     suspend fun addSongData(songId: String, songData: SongData) {
         val songMap = hashMapOf(
             "title" to songData.title,
@@ -123,7 +121,6 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
         }
     }
 
-
     fun getFilteredSongs(filter: String, callback: (List<Pair<String, String>>) -> Unit) {
         println("🔍 Querying Firestore with filter: $filter")
 
@@ -151,8 +148,6 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 println("❌ Firestore error: ${exception.message}")
             }
     }
-
-
 
     fun searchSongs(query: String, callback: (List<Triple<String, String, String>>) -> Unit) {
         if (query.isEmpty()) {
@@ -191,5 +186,27 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 callback(emptyList())
             }
     }
+
+
+    fun getRandomSongs(limit: Int, callback: (List<Pair<String, String>>) -> Unit) {
+        db.collection("songs")
+            .limit(limit.toLong()) // ✅ Παίρνουμε `limit` τραγούδια
+            .get()
+            .addOnSuccessListener { result ->
+                val songList = result.documents.mapNotNull { doc ->
+                    val title = doc.getString("title")
+                    val id = doc.id
+                    if (title != null) title to id else null
+                }
+                callback(songList)
+            }
+            .addOnFailureListener { exception ->
+                Log.e("Firestore", "❌ Error fetching random songs: ${exception.message}")
+                callback(emptyList())
+            }
+    }
+
+
+
 
 }

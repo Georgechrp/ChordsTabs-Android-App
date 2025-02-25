@@ -1,6 +1,5 @@
 package com.unipi.george.chordshub.utils
 
-
 import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -25,7 +24,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.viewmodels.SearchViewModel
 
-// ✅ Μέθοδος για τη δημιουργία QR Code
+
 fun generateQRCode(content: String): Bitmap? {
     return try {
         val qrCodeWriter = QRCodeWriter()
@@ -64,7 +63,7 @@ fun QRCodeDialog(showDialog: MutableState<Boolean>, songId: String) {
     }
 }
 
-// ✅ Composable για το κουμπί δημιουργίας QR Code
+
 @Composable
 fun QRCodeButton(showQRCodeDialog: MutableState<Boolean>) {
     IconButton(onClick = { showQRCodeDialog.value = true }) {
