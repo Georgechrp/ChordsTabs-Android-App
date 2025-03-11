@@ -2,6 +2,9 @@ package com.unipi.george.chordshub.repository
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import java.text.SimpleDateFormat
+import java.util.*
 
 class UserStatsRepository(private val db: FirebaseFirestore) {
 
@@ -23,23 +26,16 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
         }
     }
 
-    /**
-     * 🔥 Αυξάνει το σύνολο των προβολών τραγουδιών του χρήστη
-     */
+
     fun incrementTotalSongsViewed(userId: String) {
         incrementUserStat(userId, "totalSongsViewed")
     }
 
-    /**
-     * 🔥 Αυξάνει το σύνολο των τραγουδιών που ανέβασε ο χρήστης
-     */
     fun incrementTotalSongsUploaded(userId: String) {
         incrementUserStat(userId, "totalSongsUploaded")
     }
 
-    /**
-     * 🔥 Αυξάνει το σύνολο των τραγουδιών που πρόσθεσε στα αγαπημένα
-     */
+
     fun incrementTotalSongsFavorited(userId: String) {
         incrementUserStat(userId, "totalSongsFavorited")
     }
@@ -79,7 +75,7 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
 
     // Προσθέτει το `totalTimeSpent` αν δεν υπάρχει
 
-    fun addTotalTimeSpentIfMissing(userId: String) {
+    private fun addTotalTimeSpentIfMissing(userId: String) {
         val userRef = usersCollection.document(userId)
 
         userRef.get()
@@ -97,5 +93,67 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
             .addOnFailureListener { e ->
                 Log.e("Firestore", "❌ Error fetching user document", e)
             }
+    }
+
+    // Επιστρέφει τη Δευτέρα της τρέχουσας εβδομάδας
+    private fun getCurrentWeekStartDate(): String {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+    }
+
+    // Επιστρέφει την ημέρα της εβδομάδας (π.χ. "Monday")
+    private fun getCurrentDayOfWeek(): String {
+        return SimpleDateFormat("EEEE", Locale.getDefault()).format(Date())
+    }
+
+    fun updateWeeklyStats(userId: String, currentDay: String, timeSpent: Int) {
+        val weekStart = getCurrentWeekStartDate()
+
+        val userStatsRef = db.collection("users").document(userId)  // Ενημέρωση στο σωστό collection
+
+        userStatsRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val data = document.data ?: return@addOnSuccessListener
+
+                // Αν η εβδομάδα δεν είναι ίδια, δημιουργούμε νέο πεδίο
+                if (data["weekStart"] != weekStart) {
+                    val newWeekStats = mapOf(
+                        "weekStart" to weekStart,
+                        "totalTimeSpent" to mapOf(
+                            "Monday" to "-",
+                            "Tuesday" to "-",
+                            "Wednesday" to "-",
+                            "Thursday" to "-",
+                            "Friday" to "-",
+                            "Saturday" to "-",
+                            "Sunday" to "-"
+                        )
+                    )
+                    userStatsRef.set(newWeekStats, SetOptions.merge())
+                }
+
+                // Δημιουργία ή Ενημέρωση του σημερινού χρόνου
+                val updatedDay = mapOf("totalTimeSpent.$currentDay" to timeSpent)
+                userStatsRef.set(updatedDay, SetOptions.merge())
+            } else {
+                // Αν δεν υπάρχει καθόλου εγγραφή, δημιουργούμε νέα
+                val initialStats = mapOf(
+                    "weekStart" to weekStart,
+                    "totalTimeSpent" to mapOf(
+                        "Monday" to "-",
+                        "Tuesday" to "-",
+                        "Wednesday" to "-",
+                        "Thursday" to "-",
+                        "Friday" to "-",
+                        "Saturday" to "-",
+                        "Sunday" to timeSpent
+                    )
+                )
+                userStatsRef.set(initialStats, SetOptions.merge())
+            }
+        }.addOnFailureListener { e ->
+            println("❌ Σφάλμα κατά την ενημέρωση: ${e.message}")
+        }
     }
 }

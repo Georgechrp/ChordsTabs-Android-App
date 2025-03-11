@@ -41,8 +41,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,69 +52,82 @@ import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.utils.saveCardContentAsPdf
 import android.content.Context
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.platform.LocalContext
-
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.utils.QRCodeButton
+import com.unipi.george.chordshub.repository.AuthRepository
+import com.unipi.george.chordshub.sharedpreferences.TransposePreferences
 import com.unipi.george.chordshub.utils.QRCodeDialog
+import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
+import com.unipi.george.chordshub.viewmodels.MainViewModel
+import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
 
 @Composable
 fun DetailedSongView(
     songId: String,
-    isFullScreen: Boolean,
-    onFullScreenChange: (Boolean) -> Unit,
+    isFullScreenState: Boolean,
     onBack: () -> Unit,
     repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance()),
-    navController: NavController
-
+    navController: NavController,
+    mainViewModel: MainViewModel,
+    homeViewModel: HomeViewModel,
+    userViewModel: UserViewModel
 ) {
     val songDataState = remember { mutableStateOf<SongData?>(null) }
-    val currentKey = remember { mutableStateOf("C") }
+    val transposeValue = remember { mutableStateOf(0) }
     val isScrolling = remember { mutableStateOf(false) }
-    val scrollSpeed = remember { mutableStateOf(30f) }
+    val scrollSpeed = remember { mutableFloatStateOf(30f) }
     val isSpeedControlVisible = remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
     val showDialog = remember { mutableStateOf(false) }
     val showQRCodeDialog = remember { mutableStateOf(false) }
 
+
+    val context = LocalContext.current
+    val transposePreferences = remember { TransposePreferences(context) }
+
+
+    val userId = AuthRepository.getUserId()
+
     LaunchedEffect(isScrolling.value) {
         while (isScrolling.value) {
-            listState.animateScrollBy(scrollSpeed.value)
+            listState.animateScrollBy(scrollSpeed.floatValue)
             kotlinx.coroutines.yield()
         }
     }
 
     LaunchedEffect(songId) {
+        transposeValue.value = transposePreferences.getTransposeValue(songId)
         Log.d("DetailedSongView", "LaunchedEffect triggered for songId: $songId")
         val songData = repository.getSongDataAsync(songId)
         songDataState.value = songData
-        currentKey.value = songData?.key ?: "C"
+        // Καταγραφή του τραγουδιού στη λίστα recentSongs
+        userId?.let { id ->
+            userViewModel.addRecentSong(id, songData?.title ?: "Untitled")
+        }
     }
 
-    fun changeKey(shift: Int) {
-        val newKey = getNewKey(currentKey.value, shift)
-        currentKey.value = newKey
-
+    fun applyTranspose() {
         songDataState.value = songDataState.value?.copy(
             lyrics = songDataState.value?.lyrics?.map { line ->
                 line.copy(
                     chords = line.chords.map { chord ->
-                        chord.copy(chord = getNewKey(chord.chord, shift))
+                        chord.copy(chord = getNewKey(chord.chord, transposeValue.value))
                     }
                 )
             }
         )
+        transposePreferences.saveTransposeValue(songId, transposeValue.value)
     }
 
     BackHandler {
-        if (isFullScreen) {
-            onFullScreenChange(false)
+        if (isFullScreenState) {
+            homeViewModel.setFullScreen(false)
         } else {
             onBack()
         }
@@ -125,8 +136,15 @@ fun DetailedSongView(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .clickable { onFullScreenChange(!isFullScreen) }
-    ) {
+            .clickable {
+                if (isFullScreenState) {
+                    homeViewModel.setFullScreen(false)
+                } else {
+                    homeViewModel.setFullScreen(true)
+                }
+            }
+    )
+    {
         if (songDataState.value == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Loading...")
@@ -135,10 +153,10 @@ fun DetailedSongView(
             val songData = songDataState.value!!
 
             Card(
-                modifier = if (isFullScreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth().padding(16.dp),
-                shape = RoundedCornerShape(if (isFullScreen) 0.dp else 16.dp),
+                modifier = if (isFullScreenState) Modifier.fillMaxSize() else Modifier.fillMaxWidth().padding(16.dp),
+                shape = RoundedCornerShape(if (isFullScreenState) 0.dp else 16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isFullScreen) 0.dp else 8.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = if (isFullScreenState) 0.dp else 8.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -155,7 +173,7 @@ fun DetailedSongView(
                         SongInfoPlace(
                             title = songData.title ?: "No Title",
                             artist = songData.artist ?: "Unknown Artist",
-                            isFullScreen = isFullScreen,
+                            isFullScreen = isFullScreenState,
                             navController ,
                             modifier = Modifier.weight(1f)
                         )
@@ -178,8 +196,10 @@ fun DetailedSongView(
 
                     OptionsDialog(
                         showDialog = showDialog,
-                        currentKey = currentKey,
-                        onChangeKey = { shift -> changeKey(shift) },
+                        transposeValue = transposeValue,
+                        onTransposeChange = {
+                            applyTranspose()
+                        },
                         context = LocalContext.current,
                         songTitle = songDataState.value?.title ?: "Untitled",
                         songLyrics = songDataState.value?.lyrics ?: emptyList()
@@ -189,18 +209,8 @@ fun DetailedSongView(
             }
         }
     }
-    fun getNewKey(currentKey: String, shift: Int): String {
-        val notes = listOf(
-            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-        )
-
-        val index = notes.indexOfFirst { it.equals(currentKey, ignoreCase = true) }
-        if (index == -1) return currentKey
-
-        val newIndex = (index + shift + notes.size) % notes.size
-        return notes[newIndex]
-    }
 }
+
 
 
 
@@ -346,8 +356,8 @@ fun SongLyricsView(songLines: List<SongLine>, listState: LazyListState) {
 @Composable
 fun OptionsDialog(
     showDialog: MutableState<Boolean>,
-    currentKey: MutableState<String>,
-    onChangeKey: (Int) -> Unit,
+    transposeValue: MutableState<Int>,
+    onTransposeChange: () -> Unit,
     context: Context,
     songTitle: String,
     songLyrics: List<SongLine>
@@ -355,11 +365,10 @@ fun OptionsDialog(
     if (showDialog.value) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
-            title = { Text("Επιλογές") },
+            title = { Text("Transpose Options") },
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Αλλαγή Key:", fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
-
+                    Text("Transpose by:", fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -367,21 +376,32 @@ fun OptionsDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Button(
-                            onClick = { onChangeKey(-1) },
+                            onClick = {
+                                if (transposeValue.value > -11) {
+                                    transposeValue.value -= 1
+                                    onTransposeChange()
+                                }
+                            },
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
                             Text("🔽")
                         }
 
                         TextField(
-                            value = currentKey.value, // ✅ Δείχνει το τρέχον Key
-                            onValueChange = { currentKey.value = it }, // ✅ Ενημερώνει το key
+                            value = transposeValue.value.toString(),
+                            onValueChange = {},
                             singleLine = true,
+                            readOnly = true,
                             modifier = Modifier.width(80.dp)
                         )
 
                         Button(
-                            onClick = { onChangeKey(1) },
+                            onClick = {
+                                if (transposeValue.value < 11) {
+                                    transposeValue.value += 1
+                                    onTransposeChange()
+                                }
+                            },
                             modifier = Modifier.padding(start = 8.dp)
                         ) {
                             Text("🔼")
@@ -390,7 +410,6 @@ fun OptionsDialog(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ✅ Προσθήκη κουμπιού "Save as PDF"
                     Button(
                         onClick = {
                             saveCardContentAsPdf(context, songTitle, songLyrics)
@@ -412,16 +431,19 @@ fun OptionsDialog(
     }
 }
 
+fun getNewKey(originalKey: String, transpose: Int): String {
+    val notes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 
+    val regex = Regex("^([A-Ga-g#b]+)(.*)$")
+    val matchResult = regex.matchEntire(originalKey) ?: return originalKey
 
-fun getNewKey(currentKey: String, shift: Int): String {
-    val notes = listOf(
-        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-    )
+    val (rootNote, suffix) = matchResult.destructured
+    val normalizedRoot = rootNote.replace("b", "#") // Αντικατάσταση "b" με "#"
 
-    val index = notes.indexOfFirst { it.equals(currentKey, ignoreCase = true) }
-    if (index == -1) return currentKey // Αν δεν υπάρχει στο array, επιστρέφουμε το ίδιο
+    val index = notes.indexOfFirst { it.equals(normalizedRoot, ignoreCase = true) }
+    if (index == -1) return originalKey // Αν δεν βρεθεί, επιστρέφουμε το ίδιο
 
-    val newIndex = (index + shift + notes.size) % notes.size
-    return notes[newIndex]
+    val newIndex = (index + transpose + notes.size) % notes.size
+    return notes[newIndex] + suffix
 }
+

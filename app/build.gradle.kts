@@ -47,6 +47,16 @@ android {
 
 dependencies {
 
+    implementation ("androidx.room:room-runtime:2.6.1")
+    //kapt ("androidx.room:room-compiler:2.6.1")
+
+    // Για να χρησιμοποιήσεις coroutines με Room
+    implementation ("androidx.room:room-ktx:2.6.1")
+
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.1-alpha")
+
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
     implementation("com.google.firebase:firebase-storage-ktx:20.2.1")

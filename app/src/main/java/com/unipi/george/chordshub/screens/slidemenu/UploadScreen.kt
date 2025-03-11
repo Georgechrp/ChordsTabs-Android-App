@@ -1,18 +1,19 @@
-package com.unipi.george.chordshub.screens.main
+package com.unipi.george.chordshub.screens.slidemenu
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.components.AppTopBar
-import com.unipi.george.chordshub.components.CircularImageViewSmall
 import com.unipi.george.chordshub.models.ChordPosition
 import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.models.SongData
@@ -33,19 +34,24 @@ fun UploadScreen(navController: NavController, painter: Painter, onMenuClick: ()
     var lyrics by remember { mutableStateOf("") }
     var chords by remember { mutableStateOf("") }
 
+    val scrollState = rememberScrollState()
+
     Scaffold(
         topBar = {
-            AppTopBar(
-                painter = painter,
-                onMenuClick = onMenuClick
-            ) {
-                Text("Προσθήκη Τραγουδιού", style = MaterialTheme.typography.headlineSmall)
-            }
+            TopAppBar(
+                title = { Text("Προσθήκη τραγουδιού") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Πίσω")
+                    }
+                }
+            )
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(innerPadding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)

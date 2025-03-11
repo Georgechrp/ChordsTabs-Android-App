@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.mutableStateOf
-
+import com.unipi.george.chordshub.models.User
 
 object AuthRepository {
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -47,6 +47,36 @@ object AuthRepository {
             }
     }
 
+    fun deleteUserAccount(onResult: (Boolean, String?) -> Unit) {
+        val user = firebaseAuth.currentUser
+        if (user == null) {
+            onResult(false, "No user is currently logged in.")
+            return
+        }
+
+        // Get the user's UID to delete their Firestore document
+        val uid = user.uid
+
+        // First, delete the Firestore document
+        firestore.collection("users").document(uid).delete()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // Then, delete the user from Firebase Authentication
+                    user.delete()
+                        .addOnCompleteListener { deleteTask ->
+                            if (deleteTask.isSuccessful) {
+                                onResult(true, null)
+                            } else {
+                                onResult(false, handleFirebaseException(deleteTask.exception))
+                            }
+                        }
+                } else {
+                    logError("Failed to delete Firestore document for user", task.exception)
+                    onResult(false, "Failed to delete user data from Firestore.")
+                }
+            }
+    }
+
     fun saveUserToFirestore(uid: String, fullName: String, email: String, role: String, onResult: (Boolean) -> Unit) {
         val user = mapOf(
             "fullName" to fullName,
@@ -80,6 +110,16 @@ object AuthRepository {
             }
     }
 
+    fun updateUsernameInFirestore(userId: String, newUsername: String, onResult: (Boolean) -> Unit) {
+        firestore.collection("users").document(userId)
+            .update("username", newUsername)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { exception ->
+                logError("Failed to update username in Firestore", exception)
+                onResult(false)
+            }
+    }
+
     fun getUserRoleFromFirestore(uid: String, onResult: (String?) -> Unit) {
         firestore.collection("users").document(uid).get()
             .addOnSuccessListener { document ->
@@ -96,46 +136,19 @@ object AuthRepository {
             }
     }
 
-    fun deleteUserAccount(onResult: (Boolean, String?) -> Unit) {
-        val user = firebaseAuth.currentUser
-        if (user == null) {
-            onResult(false, "No user is currently logged in.")
-            return
-        }
-
-        // Get the user's UID to delete their Firestore document
-        val uid = user.uid
-
-        // First, delete the Firestore document
-        firestore.collection("users").document(uid).delete()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // Then, delete the user from Firebase Authentication
-                    user.delete()
-                        .addOnCompleteListener { deleteTask ->
-                            if (deleteTask.isSuccessful) {
-                                onResult(true, null)
-                            } else {
-                                onResult(false, handleFirebaseException(deleteTask.exception))
-                            }
-                        }
+    fun getUsernameFromFirestore(userId: String, onResult: (String?) -> Unit) {
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val username = document.getString("username")
+                    onResult(username)
                 } else {
-                    logError("Failed to delete Firestore document for user", task.exception)
-                    onResult(false, "Failed to delete user data from Firestore.")
+                    onResult(null)
                 }
             }
-    }
-
-    fun saveUsername(userId: String, newUsername: String, onResult: (Boolean, String?) -> Unit) {
-        firestore.collection("users").document(userId)
-            .update("fullName", newUsername)
-            .addOnSuccessListener {
-                fullNameState.value = newUsername
-                onResult(true, null)
-            }
             .addOnFailureListener { exception ->
-                logError("Failed to update username in Firestore", exception)
-                onResult(false, handleFirebaseException(exception))
+                logError("Failed to fetch username from Firestore", exception)
+                onResult(null)
             }
     }
 
@@ -170,5 +183,35 @@ object AuthRepository {
         Log.d("AuthRepository", "isUserLoggedIn: $loggedIn")
         return firebaseAuth.currentUser != null
     }
+
+
+    fun getUserFromFirestore(uid: String, onResult: (User?) -> Unit) {
+        firestore.collection("users").document(uid).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val user = document.toObject(User::class.java)
+                    onResult(user)
+                } else {
+                    onResult(null)
+                }
+            }
+            .addOnFailureListener { exception ->
+                logError("Failed to fetch user from Firestore", exception)
+                onResult(null)
+            }
+    }
+
+    fun resetPassword(email: String, onResult: (Boolean, String?) -> Unit) {
+        firebaseAuth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(true, null) // Email στάλθηκε με επιτυχία
+                } else {
+                    onResult(false, handleFirebaseException(task.exception)) // Σφάλμα
+                }
+            }
+    }
+
+
 
 }

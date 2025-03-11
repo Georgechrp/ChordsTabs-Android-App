@@ -2,6 +2,7 @@ package com.unipi.george.chordshub.components
 
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -26,23 +27,27 @@ import com.unipi.george.chordshub.ui.theme.filterColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppTopBar(
+fun MyAppTopBar(
     painter: Painter,
     onMenuClick: () -> Unit,
     content: @Composable RowScope.() -> Unit
 ) {
+
     TopAppBar(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().background(Color.Transparent)
             ) {
                 CircularImageViewSmall(
                     painter = painter,
                     onClick = onMenuClick
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                content()
+                Box(modifier = Modifier.weight(1f)) {
+                    this@Row.content()
+                }
+
             }
         }
     )
@@ -73,32 +78,36 @@ fun FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
         onClick = onClick,
         shape = RoundedCornerShape(15.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) checkedFilter // Αν επιλεγεί
-            else filterColor //Αν δεν είναι επιλεγμένο
+            containerColor = if (isSelected) checkedFilter
+            else filterColor
         ),
         modifier = Modifier
             .height(30.dp)
-            .wrapContentWidth()
+            .padding(horizontal = 4.dp)
     ) {
         Text(
             text,
             maxLines = 1,
-            fontSize = 12.sp,  //overflow = TextOverflow.Ellipsis
+            fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
     }
 }
 
+
 @Composable
 fun CircularImageViewSmall(painter: Painter, onClick: () -> Unit) {
-    Image(
-        painter = painter,
-        contentDescription = stringResource(R.string.circular_image_description),
+    Box(
         modifier = Modifier
             .size(30.dp)
             .clip(CircleShape)
             .border(2.dp, Color.Gray, CircleShape)
-            .clickable { onClick() }
-    )
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painter,
+            contentDescription = stringResource(R.string.circular_image_description)
+        )
+    }
 }
-

@@ -19,8 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.navigation.Screen
@@ -40,18 +42,32 @@ fun LoginScreen(navController: NavController, onLoginSuccess: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text(
+            text = "Welcome",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+        )
         TextField(
             value = email.value,
             onValueChange = { email.value = it },
-            label = { Text(stringResource(R.string.email)) }
+            label = { Text(stringResource(R.string.email)) },
+            singleLine = true,
+            maxLines = 1
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = password.value,
             onValueChange = { password.value = it },
             label = { Text(stringResource(R.string.password)) },
-            visualTransformation = PasswordVisualTransformation()
+            visualTransformation = PasswordVisualTransformation(),
+            singleLine = true,
+            maxLines = 1
         )
+        TextButton(onClick = {
+            navController.navigate(Screen.ForgotPassword.route)
+        }) {
+            Text(stringResource(R.string.resetPassword_text))
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
             if (email.value.isBlank() || password.value.isBlank()) {

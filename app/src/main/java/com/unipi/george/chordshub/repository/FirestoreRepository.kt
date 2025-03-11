@@ -1,16 +1,15 @@
 package com.unipi.george.chordshub.repository
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.unipi.george.chordshub.models.ChordPosition
 import com.unipi.george.chordshub.models.SongData
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.Query
-import com.google.firebase.storage.FirebaseStorage
 import com.unipi.george.chordshub.models.SongLine
 
 class FirestoreRepository(private val firestore: FirebaseFirestore) {
@@ -149,6 +148,53 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
             }
     }
 
+    fun getRecentSongs(userId: String, callback: (List<Pair<String, String>>) -> Unit) {
+        val userDocRef = db.collection("users").document(userId)
+
+        userDocRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val recentSongs = document.get("recentSongs") as? List<String> ?: emptyList()
+
+                    if (recentSongs.isEmpty()) {
+                        println("🔍 No recent songs found for user: $userId")
+                        callback(emptyList()) // Επιστρέφει κενή λίστα αν δεν υπάρχουν recent τραγούδια
+                        return@addOnSuccessListener
+                    }
+
+                    println("🎵 Recent songs Titles: $recentSongs")
+
+                    // Ανακτά τα τραγούδια που έχουν τίτλους από το `recentSongs`
+                    db.collection("songs")
+                        .whereIn("title", recentSongs)
+                        .get()
+                        .addOnSuccessListener { result ->
+                            val songList = result.documents.mapNotNull { doc ->
+                                val title = doc.getString("title")
+                                val id = doc.id
+                                if (title != null) title to id else null
+                            }
+
+                            println("🔥 Firestore returned ${songList.size} recent songs")
+                            callback(songList)
+                        }
+                        .addOnFailureListener { exception ->
+                            println("❌ Firestore error fetching songs: ${exception.message}")
+                            callback(emptyList())
+                        }
+                } else {
+                    println("❌ User document not found: $userId")
+                    callback(emptyList())
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("❌ Firestore error fetching user: ${exception.message}")
+                callback(emptyList())
+            }
+    }
+
+
+
     fun searchSongs(query: String, callback: (List<Triple<String, String, String>>) -> Unit) {
         if (query.isEmpty()) {
             callback(emptyList())
@@ -163,7 +209,7 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 val results = result.documents.mapNotNull { doc ->
                     val title = doc.getString("title") ?: ""
                     val artist = doc.getString("artist") ?: "Άγνωστος Καλλιτέχνης"
-                    val docId = doc.id // 🔹 Αποθηκεύουμε το σωστό `documentId`
+                    val docId = doc.id
 
                     val lyricsList = doc.get("lyrics") as? List<Map<String, Any>>
                     val lyricsMatch = lyricsList?.firstOrNull { line ->
@@ -190,7 +236,7 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
 
     fun getRandomSongs(limit: Int, callback: (List<Pair<String, String>>) -> Unit) {
         db.collection("songs")
-            .limit(limit.toLong()) // ✅ Παίρνουμε `limit` τραγούδια
+            .limit(limit.toLong())
             .get()
             .addOnSuccessListener { result ->
                 val songList = result.documents.mapNotNull { doc ->
@@ -206,6 +252,45 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
             }
     }
 
+
+    //Library functions
+    fun createPlaylist(userId: String, playlistName: String, callback: (Boolean) -> Unit) {
+        val userDocRef = db.collection("users").document(userId)
+
+        val newPlaylist = hashMapOf(
+            "name" to playlistName,
+            "songs" to emptyList<String>() // Κενή λίστα τραγουδιών αρχικά
+        )
+
+        userDocRef.update("playlists", FieldValue.arrayUnion(newPlaylist))
+            .addOnSuccessListener {
+                Log.d("Firestore", "✅ Playlist '$playlistName' created successfully.")
+                callback(true)
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "❌ Error creating playlist: ${e.message}")
+                callback(false)
+            }
+    }
+
+    fun getUserPlaylists(userId: String, callback: (List<String>) -> Unit) {
+        val userDocRef = db.collection("users").document(userId)
+
+        userDocRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val playlists = document.get("playlists") as? List<Map<String, Any>>
+                    val playlistNames = playlists?.map { it["name"] as? String ?: "Άγνωστη Playlist" } ?: emptyList()
+                    callback(playlistNames)
+                } else {
+                    callback(emptyList())
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "❌ Error fetching playlists: ${e.message}")
+                callback(emptyList())
+            }
+    }
 
 
 

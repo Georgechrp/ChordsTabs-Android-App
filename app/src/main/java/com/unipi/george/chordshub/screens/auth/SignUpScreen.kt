@@ -21,8 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.unipi.george.chordshub.R
@@ -72,17 +74,27 @@ fun SignUpInputFields(
     password: MutableState<String>,
     confirmPassword: MutableState<String>
 ) {
+    Text(
+        text = "Welcome",
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold
+    )
     TextField(
         value = fullName.value,
         onValueChange = { fullName.value = it },
-        label = { Text(stringResource(R.string.full_name)) }
+        label = { Text(stringResource(R.string.full_name)) },
+        singleLine = true,
+        maxLines = 1
     )
+
     Spacer(modifier = Modifier.height(8.dp))
 
     TextField(
         value = email.value,
         onValueChange = { email.value = it },
-        label = { Text(stringResource(R.string.email)) }
+        label = { Text(stringResource(R.string.email)) },
+        singleLine = true,
+        maxLines = 1
     )
     Spacer(modifier = Modifier.height(8.dp))
 
@@ -90,7 +102,9 @@ fun SignUpInputFields(
         value = password.value,
         onValueChange = { password.value = it },
         label = { Text("Password") },
-        visualTransformation = PasswordVisualTransformation()
+        visualTransformation = PasswordVisualTransformation(),
+        singleLine = true,
+        maxLines = 1
     )
     Spacer(modifier = Modifier.height(8.dp))
 
@@ -98,7 +112,9 @@ fun SignUpInputFields(
         value = confirmPassword.value,
         onValueChange = { confirmPassword.value = it },
         label = { Text("Confirm Password") },
-        visualTransformation = PasswordVisualTransformation()
+        visualTransformation = PasswordVisualTransformation(),
+        singleLine = true,
+        maxLines = 1
     )
 }
 
@@ -150,4 +166,8 @@ fun SignUpActions(
     }) {
         Text(stringResource(R.string.already_have_account))
     }
+
+
+
+
 }

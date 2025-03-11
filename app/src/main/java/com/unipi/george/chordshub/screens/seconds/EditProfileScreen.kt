@@ -1,6 +1,6 @@
 package com.unipi.george.chordshub.screens.seconds
 
-import androidx.compose.foundation.layout.*
+import  androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,12 +24,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.rememberAsyncImagePainter
-import android.content.Context
 import android.net.Uri
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.launch
 
 @Composable
 fun EditProfileScreen(navController: NavController, userId: String, onDismiss: () -> Unit) {
@@ -106,8 +104,7 @@ fun ProfileCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ProfileImagePicker(selectedImage, onImageSelected, userId)
-
+            //ProfileImagePicker(selectedImage, onImageSelected, userId)
             UsernameInputField(newUsername, onUsernameChange)
             Spacer(modifier = Modifier.height(20.dp))
             SaveButton(onSave)
@@ -252,22 +249,5 @@ fun CancelButton(onCancel: () -> Unit) {
         onClick = onCancel
     ) {
         Text("Cancel", color = Color.Gray)
-    }
-}
-
-fun saveUsername(
-    userId: String,
-    newUsername: String,
-    snackbarHostState: SnackbarHostState,
-    coroutineScope: CoroutineScope
-) {
-    AuthRepository.saveUsername(userId, newUsername) { success, errorMessage ->
-        coroutineScope.launch {
-            if (success) {
-                snackbarHostState.showSnackbar("Username updated successfully!")
-            } else {
-                snackbarHostState.showSnackbar(errorMessage ?: "Failed to update username.")
-            }
-        }
     }
 }

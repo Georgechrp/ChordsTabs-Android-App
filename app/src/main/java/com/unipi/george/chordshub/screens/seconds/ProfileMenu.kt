@@ -1,52 +1,226 @@
 package com.unipi.george.chordshub.screens.seconds
 
-
-import androidx.compose.animation.AnimatedVisibility
+import android.annotation.SuppressLint
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import com.unipi.george.chordshub.R
+import com.unipi.george.chordshub.navigation.Screen
 import com.unipi.george.chordshub.repository.AuthRepository
+import com.unipi.george.chordshub.viewmodels.MainViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+
+@SuppressLint("UnrememberedMutableInteractionSource")
+@Composable
+fun ProfileMenu(mainViewModel: MainViewModel, navController: NavController) {
+    val isMenuOpen by mainViewModel.isMenuOpen
+
+    if (isMenuOpen) {
+        BlurredBackground { mainViewModel.setMenuOpen(false) }
+    }
+
+    AnimatedVisibility(
+        visible = isMenuOpen,
+        enter = slideInHorizontally { -it },
+        exit = slideOutHorizontally { -it }
+    ) {
+        ProfileMenuContent(mainViewModel, navController)
+    }
+
+}
 
 @Composable
-fun ProfileMenu(isMenuOpen: MutableState<Boolean>, navController: NavController) {
-    AnimatedVisibility(visible = isMenuOpen.value) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    onClick = { isMenuOpen.value = false },
-                    indication = null,
-                    interactionSource = androidx.compose.foundation.interaction.MutableInteractionSource()
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(16.dp)
-                    .background(Color.Black.copy(alpha = 0.2f))
-            )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp))
-                    .padding(16.dp)
-            ) {
-                EditProfileScreen(
-                    navController = navController,
-                    userId = AuthRepository.getUserId() ?: "",
-                    onDismiss = { isMenuOpen.value = false }
-                )
+fun BlurredBackground(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.6f))
+            .blur(20.dp)
+            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                onClick()
             }
+    )
+
+}
+
+
+@Composable
+fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavController) {
+    val userId = AuthRepository.getUserId()
+    val username = remember { mutableStateOf("Loading...") }
+    var profileImageUrl by remember { mutableStateOf<String?>(null) }
+    var selectedImage by remember { mutableStateOf<Uri?>(null) }
+
+    LaunchedEffect(userId) {
+        userId?.let {
+            AuthRepository.getUsernameFromFirestore(it) { fetchedUsername ->
+                username.value = fetchedUsername ?: "Unknown"
+            }
+            profileImageUrl = getProfileImageUrl(it)
+        }
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImage = uri
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures { _, dragAmount ->
+                    if (dragAmount < -50) {
+                        mainViewModel.setMenuOpen(false)
+                    }
+                }
+            }
+        ,
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(0.85f)
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(16.dp)
+        ) {
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = if (selectedImage != null) {
+                        rememberAsyncImagePainter(selectedImage)
+                    } else if (profileImageUrl != null) {
+                        rememberAsyncImagePainter(profileImageUrl)
+                    } else {
+                        painterResource(id = R.drawable.edit_user_image)
+                    },
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .clickable { launcher.launch("image/*") },
+                    contentScale = ContentScale.Crop
+                )
+                UserProfileSection(username, mainViewModel, navController)
+            }
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            MenuItem(
+                icon = Icons.Filled.AddCircleOutline,
+                text = stringResource(R.string.add_song_text),
+                route = Screen.Upload.route,
+                mainViewModel = mainViewModel,
+                navController = navController
+            )
+            MenuItem(
+                icon = Icons.Filled.History,
+                text = stringResource(R.string.recent_text),
+                route = Screen.Recents.route,
+                mainViewModel = mainViewModel,
+                navController = navController
+            )
+            MenuItem(
+                icon = Icons.Filled.Settings,
+                text =stringResource(R.string.settings_text),
+                route = Screen.Settings.route,
+                mainViewModel = mainViewModel,
+                navController = navController
+            )
         }
     }
 }
+
+@Composable
+fun UserProfileSection(
+    username: MutableState<String>,
+    mainViewModel: MainViewModel,
+    navController: NavController
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+        modifier = Modifier.padding(start = 8.dp)
+    ) {
+        Text(
+            text = username.value,
+            style = MaterialTheme.typography.headlineMedium
+        )
+        TextButton(
+            onClick = {
+                mainViewModel.setMenuOpen(false)
+                navController.navigate(Screen.Profile.route)
+            },
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier.height(20.dp)
+        ) {
+            Text(stringResource(R.string.view_profile_text), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+
+}
+
+
+@Composable
+fun MenuItem(
+    icon: ImageVector,
+    text: String,
+    route: String,
+    mainViewModel: MainViewModel,
+    navController: NavController
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextButton(
+            onClick = {
+                mainViewModel.setMenuOpen(false)
+                navController.navigate(route)
+            },
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(icon, contentDescription = text, modifier = Modifier.size(24.dp))
+                Text(text = text, fontSize = 16.sp)
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+}
+

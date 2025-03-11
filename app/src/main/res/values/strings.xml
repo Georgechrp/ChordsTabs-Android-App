@@ -14,6 +14,7 @@
     <!-- Toast messages -->
     <string name="please_fill_fields">Please fill in all fields</string>
     <string name="login_failed">Login failed</string>
+    <string name="resetPassword_text">Forgot the Password?</string>
 
 
     <!--                  SignUpScreen                   -->
@@ -38,6 +39,14 @@
 
     <!-- Circular Image View -->
     <string name="circular_image_description">Circular Image</string>
+
+    <!-- Profile Menu -->
+    <string name="view_profile_text">View profile</string>
+    <string name="add_song_text">Add a Song</string>
+    <string name="recent_text">Recents</string>
+    <string name="settings_text">Settings</string>
+
+
 
 
 

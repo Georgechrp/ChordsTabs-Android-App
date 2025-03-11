@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
@@ -22,7 +21,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.viewmodels.SearchViewModel
+import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
 
 
 fun generateQRCode(content: String): Bitmap? {
@@ -90,7 +89,7 @@ fun QRCodeScannerButton(viewModel: SearchViewModel) {
                 options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                 options.setPrompt("Σκάναρε το QR Code")
                 options.setCameraId(0)
-                options.setOrientationLocked(false)
+                options.setOrientationLocked(true)
                 options.setBeepEnabled(true)
                 options.setBarcodeImageEnabled(true)
                 scanLauncher.launch(options)

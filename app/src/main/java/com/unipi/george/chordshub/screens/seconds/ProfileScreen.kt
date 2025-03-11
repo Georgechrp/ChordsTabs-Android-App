@@ -1,10 +1,11 @@
-package com.unipi.george.chordshub.screens.main
+package com.unipi.george.chordshub.screens.seconds
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,16 +20,21 @@ fun ProfileScreen(onLogout: () -> Unit) {
     val fullName = AuthRepository.getFullName()
     val email = AuthRepository.getUserEmail()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
+    val username = remember { mutableStateOf<String?>(null) }
     val role = remember { mutableStateOf<String?>(null) }
     val deleteMessage = remember { mutableStateOf<String?>(null) }
     val showDeleteDialog = remember { mutableStateOf(false) }
     val showLogoutDialog = remember { mutableStateOf(false) }
+    val showEditUsernameDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(uid) {
         if (uid != null) {
             AuthRepository.getUserRoleFromFirestore(uid) { userRole ->
                 role.value = userRole
+            }
+            AuthRepository.getUsernameFromFirestore(uid) { userUsername ->
+                username.value = userUsername
             }
         }
     }
@@ -42,7 +48,7 @@ fun ProfileScreen(onLogout: () -> Unit) {
                 .padding(paddingValues),
             verticalArrangement = Arrangement.Top
         ) {
-            ProfileCard(fullName, email, showLogoutDialog, showDeleteDialog, deleteMessage)
+            ProfileCard(fullName, email, username, showLogoutDialog, showDeleteDialog, showEditUsernameDialog, deleteMessage)
         }
     }
 
@@ -77,15 +83,36 @@ fun ProfileScreen(onLogout: () -> Unit) {
             onDismiss = { showLogoutDialog.value = false }
         )
     }
-}
 
+    if (showEditUsernameDialog.value) {
+        EditUsernameDialog(
+            currentUsername = username.value,
+            onConfirm = { newUsername ->
+                if (uid != null) {
+                    AuthRepository.updateUsernameInFirestore(uid, newUsername) { success ->
+                        if (success) {
+                            username.value = newUsername
+                            Toast.makeText(context, "Username updated successfully", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(context, "Failed to update username", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                showEditUsernameDialog.value = false
+            },
+            onDismiss = { showEditUsernameDialog.value = false }
+        )
+    }
+}
 
 @Composable
 fun ProfileCard(
     fullName: String?,
     email: String?,
+    username: MutableState<String?>,
     showLogoutDialog: MutableState<Boolean>,
     showDeleteDialog: MutableState<Boolean>,
+    showEditUsernameDialog: MutableState<Boolean>,
     deleteMessage: MutableState<String?>
 ) {
     Card(
@@ -104,13 +131,14 @@ fun ProfileCard(
         ) {
             InfoRow(label = "Full Name", value = fullName)
             Divider(modifier = Modifier.padding(vertical = 4.dp))
+            EditableInfoRow(label = "Username", value = username.value) {
+                showEditUsernameDialog.value = true
+            }
+            Divider(modifier = Modifier.padding(vertical = 4.dp))
             InfoRow(label = "Email", value = email)
 
             Spacer(modifier = Modifier.height(16.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Spacer(modifier = Modifier.height(16.dp))
 
-            // Logout Button
             OutlinedButton(
                 onClick = { showLogoutDialog.value = true },
                 modifier = Modifier.fillMaxWidth(),
@@ -125,7 +153,6 @@ fun ProfileCard(
                 Text("Logout")
             }
 
-            // Delete Account Button
             OutlinedButton(
                 onClick = { showDeleteDialog.value = true },
                 modifier = Modifier.fillMaxWidth(),
@@ -140,13 +167,34 @@ fun ProfileCard(
                 Text("Delete Account")
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             deleteMessage.value?.let { message ->
                 Text(text = message, color = MaterialTheme.colorScheme.error)
             }
         }
     }
+}
+
+@Composable
+fun EditUsernameDialog(currentUsername: String?, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var newUsername by remember { mutableStateOf(currentUsername ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Username") },
+        text = {
+            TextField(
+                value = newUsername,
+                onValueChange = { newUsername = it },
+                label = { Text("Username") }
+            )
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(newUsername) }) { Text("Save") }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
 }
 
 @Composable
@@ -161,6 +209,29 @@ fun InfoRow(label: String, value: String?) {
             text = value ?: "-",
             style = MaterialTheme.typography.bodyMedium
         )
+    }
+}
+
+@Composable
+fun EditableInfoRow(label: String, value: String?, onEditClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = value ?: "-",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        IconButton(onClick = onEditClick) {
+            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
+        }
     }
 }
 

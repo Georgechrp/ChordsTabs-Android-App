@@ -1,6 +1,5 @@
-package com.unipi.george.chordshub.viewmodels
+package com.unipi.george.chordshub.viewmodels.main
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +20,10 @@ class SearchViewModel : ViewModel() {
 
     init {
         fetchRandomSongs() // ✅ Φέρνουμε 5 τυχαία τραγούδια κατά την εκκίνηση
+    }
+
+    fun clearSearchResults() {
+        _searchResults.value = emptyList() // Αδειάζει τη λίστα των αποτελεσμάτων
     }
 
     fun searchSongs(query: String) {

@@ -1,9 +1,13 @@
 package com.unipi.george.chordshub.screens.main
 
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,18 +15,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.screens.seconds.DetailedSongView
 import com.unipi.george.chordshub.utils.QRCodeScannerButton
-import com.unipi.george.chordshub.viewmodels.SearchViewModel
-import com.unipi.george.chordshub.components.AppTopBar
+import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
+import com.unipi.george.chordshub.components.MyAppTopBar
+import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
+import com.unipi.george.chordshub.viewmodels.MainViewModel
+import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = viewModel(),
+    mainViewModel: MainViewModel,
+    homeViewModel: HomeViewModel,
     painter: Painter,
     onMenuClick: () -> Unit,
     navController: NavController,
@@ -33,6 +43,28 @@ fun SearchScreen(
     val searchResults by viewModel.searchResults.collectAsState()
     val selectedSongId by viewModel.selectedSongId.collectAsState()
     val randomSongs by viewModel.randomSongs.collectAsState()
+    val isMenuOpen by mainViewModel.isMenuOpen
+    val userViewModel: UserViewModel = viewModel()
+
+    LaunchedEffect(searchText.text) {
+        if (searchText.text.isEmpty()) {
+            viewModel.clearSearchResults()
+        }
+    }
+
+    BackHandler {
+        if (isMenuOpen) {
+            Log.d("BackHandler", "Back button pressed - Closing Menu")
+            mainViewModel.setMenuOpen(false)
+        } else if (searchText.text.isNotEmpty()) {
+            Log.d("BackHandler", "Back button pressed - Clearing Search")
+            searchText = TextFieldValue("")
+            viewModel.clearSearchResults()
+        } else {
+            Log.d("BackHandler", "Back button pressed - Exiting SearchScreen")
+            navController.popBackStack()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -58,13 +90,15 @@ fun SearchScreen(
             } else {
                 DetailedSongView(
                     songId = selectedSongId!!,
-                    isFullScreen = isFullScreen,
-                    onFullScreenChange = { onFullScreenChange(!isFullScreen) },
+                    isFullScreenState = isFullScreen,
                     onBack = {
                         onFullScreenChange(false)
                         viewModel.clearSelectedSong()
                     },
-                    navController = navController
+                    navController = navController,
+                    mainViewModel = mainViewModel,
+                    homeViewModel = homeViewModel,
+                    userViewModel = userViewModel
                 )
             }
         }
@@ -73,22 +107,21 @@ fun SearchScreen(
 
 @Composable
 fun SearchScreenTopBar(painter: Painter, onMenuClick: () -> Unit) {
-    AppTopBar(
+    MyAppTopBar(
         painter = painter,
         onMenuClick = onMenuClick
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Αναζήτηση",
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Spacer(modifier = Modifier.width(80.dp))
-        }
+        Text(
+            text = "Αναζήτηση",
+            style = MaterialTheme.typography.headlineSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
+
+
 
 @Composable
 fun SearchContent(
@@ -98,7 +131,7 @@ fun SearchContent(
     onSongSelect: (String) -> Unit,
     viewModel: SearchViewModel,
     isFullScreen: Boolean,
-    randomSongs: List<Pair<String, String>> // ✅ Προσθήκη λίστας με 5 τυχαία τραγούδια
+    randomSongs: List<Pair<String, String>>
 ) {
     Column(
         modifier = Modifier
@@ -108,7 +141,7 @@ fun SearchContent(
         SearchBar(searchText, onSearchTextChange, viewModel)
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (searchText.text.isEmpty()) { // ✅ Εμφάνιση random τραγουδιών μόνο αν δεν γίνεται αναζήτηση
+        if (searchText.text.isEmpty()) {
             RandomSongsList(randomSongs, onSongSelect)
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -184,29 +217,32 @@ fun SongCard(song: Pair<String, String>, onSongSelect: (String) -> Unit) {
     }
 }
 
-
 @Composable
 fun SearchBar(
     searchText: TextFieldValue,
     onSearchTextChange: (TextFieldValue) -> Unit,
     viewModel: SearchViewModel
 ) {
-    Row(
+    TextField(
+        value = searchText,
+        onValueChange = onSearchTextChange,
+        label = { Text("Ψάχνεις κάποιο τραγούδι;") },
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        TextField(
-            value = searchText,
-            onValueChange = onSearchTextChange,
-            label = { Text("Αναζήτηση τραγουδιών") },
-            modifier = Modifier.weight(1f)
-        )
-        QRCodeScannerButton(viewModel)
-    }
-
-    //findSuggestions()
-
+        singleLine = true,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search Icon",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        trailingIcon = {
+            QRCodeScannerButton(viewModel)
+        }
+    )
 }
+
+
 
 @Composable
 fun SearchResultsList(
