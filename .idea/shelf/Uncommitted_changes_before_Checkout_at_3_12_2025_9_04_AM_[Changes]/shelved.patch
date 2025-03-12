@@ -1,0 +1,34 @@
+Index: app/src/main/java/com/unipi/george/chordshub/navigation/main/MainBottomNavBar.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.unipi.george.chordshub.navigation.main\n\nimport androidx.compose.animation.AnimatedVisibility\nimport androidx.compose.foundation.background\nimport androidx.compose.foundation.clickable\nimport androidx.compose.foundation.layout.*\nimport androidx.compose.foundation.shape.RoundedCornerShape\nimport androidx.compose.material.icons.Icons\nimport androidx.compose.material.icons.filled.Home\nimport androidx.compose.material3.*\nimport androidx.compose.material3.Icon\nimport androidx.compose.material3.MaterialTheme\nimport androidx.compose.runtime.*\nimport androidx.compose.ui.Alignment\nimport androidx.compose.ui.Modifier\nimport androidx.compose.ui.graphics.Color\nimport androidx.compose.ui.unit.dp\nimport androidx.navigation.NavController\nimport androidx.navigation.compose.currentBackStackEntryAsState\nimport androidx.compose.material.icons.filled.LibraryMusic\nimport androidx.compose.material.icons.filled.Search\nimport com.unipi.george.chordshub.navigation.Screen\n\n@Composable\nfun MainBottomNavBar(navController: NavController) {\n    val items = listOf(\n        Screen.Home,\n        Screen.Search,\n        Screen.Library\n    )\n\n    Surface( // ➡\uFE0F Surface για καλύτερη διαχείριση διαφάνειας\n        modifier = Modifier\n            .fillMaxWidth()\n            .padding(8.dp),\n        color = Color.Transparent, // Transparent Background\n        contentColor = MaterialTheme.colorScheme.onSurface\n    ) {\n        Row(\n            modifier = Modifier\n                .fillMaxWidth()\n                .padding(8.dp),\n            horizontalArrangement = Arrangement.SpaceEvenly,\n            verticalAlignment = Alignment.CenterVertically\n        ) {\n            items.forEach { screen ->\n                val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route\n                val isSelected = currentRoute == screen.route\n\n                Column(\n                    horizontalAlignment = Alignment.CenterHorizontally,\n                    modifier = Modifier\n                        .weight(1f)\n                        .clickable {\n                            navController.navigate(screen.route) {\n                                popUpTo(screen.route) { inclusive = true }\n                                launchSingleTop = true\n                                restoreState = true\n                            }\n                        }\n                        .padding(vertical = 8.dp)\n                ) {\n                    Icon(\n                        imageVector = when (screen) {\n                            is Screen.Home -> Icons.Filled.Home\n                            is Screen.Search -> Icons.Filled.Search\n                            is Screen.Library -> Icons.Filled.LibraryMusic\n                            else -> Icons.Filled.Home\n                        },\n                        contentDescription = screen.route,\n                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),\n                        modifier = Modifier.size(28.dp)\n                    )\n\n                    AnimatedVisibility(visible = isSelected) {\n                        Box(\n                            modifier = Modifier\n                                .width(24.dp)\n                                .height(3.dp)\n                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))\n                        )\n                    }\n                }\n            }\n        }\n    }\n}\n
+===================================================================
+diff --git a/app/src/main/java/com/unipi/george/chordshub/navigation/main/MainBottomNavBar.kt b/app/src/main/java/com/unipi/george/chordshub/navigation/main/MainBottomNavBar.kt
+--- a/app/src/main/java/com/unipi/george/chordshub/navigation/main/MainBottomNavBar.kt	(revision 9d5cec78d8ba958e79d6c587ffc599618f7733d5)
++++ b/app/src/main/java/com/unipi/george/chordshub/navigation/main/MainBottomNavBar.kt	(date 1741709915981)
+@@ -29,7 +29,7 @@
+         Screen.Library
+     )
+ 
+-    Surface( // ➡️ Surface για καλύτερη διαχείριση διαφάνειας
++    Surface(
+         modifier = Modifier
+             .fillMaxWidth()
+             .padding(8.dp),
+@@ -72,14 +72,14 @@
+                         modifier = Modifier.size(28.dp)
+                     )
+ 
+-                    AnimatedVisibility(visible = isSelected) {
++                    /*AnimatedVisibility(visible = isSelected) {
+                         Box(
+                             modifier = Modifier
+                                 .width(24.dp)
+                                 .height(3.dp)
+                                 .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                         )
+-                    }
++                    }*/
+                 }
+             }
+         }

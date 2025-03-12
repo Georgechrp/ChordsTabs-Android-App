@@ -5,6 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.firestore.FirebaseFirestore
 import com.unipi.george.chordshub.repository.AuthRepository
@@ -13,17 +17,29 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.unipi.george.chordshub.navigation.auth.AuthFlowNavGraph
 import com.unipi.george.chordshub.navigation.main.MainScaffold
 import com.unipi.george.chordshub.repository.UserStatsRepository
+import com.unipi.george.chordshub.sharedpreferences.UserPreferences
 import com.unipi.george.chordshub.utils.UserSessionManager
+import com.unipi.george.chordshub.viewmodels.SettingsViewModelFactory
+import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
 class MainActivity : ComponentActivity() {
     private val sessionManager by lazy {
         UserSessionManager(UserStatsRepository(FirebaseFirestore.getInstance()))
     }
+    private lateinit var userPreferences: UserPreferences
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        userPreferences = UserPreferences(this)
+        val isDarkMode = userPreferences.isDarkMode()
         setContent {
-            ChordsHubTheme {
+            val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(userPreferences))
+            settingsViewModel.onThemeChange = { recreate() }
+
+            val darkModeState by settingsViewModel.darkMode
+
+
+            ChordsHubTheme(darkTheme = darkModeState) {
                 val userViewModel: UserViewModel = viewModel()
                 ObserveUserSession(userViewModel)
                 val navController = rememberNavController()

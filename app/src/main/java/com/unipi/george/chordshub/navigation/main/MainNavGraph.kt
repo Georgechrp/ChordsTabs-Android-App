@@ -13,7 +13,6 @@ import com.unipi.george.chordshub.navigation.Screen
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.fullNameState
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
-import com.unipi.george.chordshub.screens.auth.ForgotPasswordScreen
 import com.unipi.george.chordshub.screens.main.*
 import com.unipi.george.chordshub.screens.seconds.ArtistScreen
 import com.unipi.george.chordshub.screens.seconds.DetailedSongView
@@ -23,9 +22,11 @@ import com.unipi.george.chordshub.screens.seconds.ProfileScreen
 import com.unipi.george.chordshub.screens.slidemenu.RecentsScreen
 import com.unipi.george.chordshub.screens.slidemenu.SettingsScreen
 import com.unipi.george.chordshub.screens.slidemenu.UploadScreen
+import com.unipi.george.chordshub.sharedpreferences.UserPreferences
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
+import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -37,6 +38,8 @@ fun MainNavGraph(
     val homeViewModel: HomeViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
+    val userPreferences = UserPreferences(navController.context)
+    val settingsViewModel = SettingsViewModel(userPreferences)
     val isMenuOpen by mainViewModel.isMenuOpen
     val painter = painterResource(id = R.drawable.user_icon)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -110,7 +113,7 @@ fun MainNavGraph(
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(navController = navController)
+            SettingsScreen(navController = navController, settingsViewModel = settingsViewModel)
         }
 
         composable(Screen.Recents.route) {
@@ -137,4 +140,3 @@ fun MainNavGraph(
 
     ProfileMenu(mainViewModel, navController = navController)
 }
-
