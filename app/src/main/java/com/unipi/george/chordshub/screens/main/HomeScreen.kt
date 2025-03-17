@@ -108,8 +108,6 @@ fun HomeScreen(
                     homeViewModel = homeViewModel,
                     userViewModel = userViewModel
                 )
-
-
             }
         }
     }

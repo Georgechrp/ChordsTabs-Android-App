@@ -431,6 +431,7 @@ fun OptionsDialog(
     }
 }
 
+
 fun getNewKey(originalKey: String, transpose: Int): String {
     val notes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 
@@ -446,4 +447,3 @@ fun getNewKey(originalKey: String, transpose: Int): String {
     val newIndex = (index + transpose + notes.size) % notes.size
     return notes[newIndex] + suffix
 }
-

@@ -13,10 +13,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.components.AppText
 
@@ -45,7 +47,7 @@ fun SettingsScreen(navController: NavController, settingsViewModel: SettingsView
 @Composable
 fun SettingsTopBar(navController: NavController) {
     TopAppBar(
-        title = { Text("Ρυθμίσεις") },
+        title = { Text(stringResource(R.string.settings_text)) },
         navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Πίσω")

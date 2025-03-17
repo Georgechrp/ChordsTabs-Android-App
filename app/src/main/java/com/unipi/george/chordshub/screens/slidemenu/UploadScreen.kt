@@ -10,10 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.models.ChordPosition
 import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.models.SongData
@@ -39,7 +41,7 @@ fun UploadScreen(navController: NavController, painter: Painter, onMenuClick: ()
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Προσθήκη τραγουδιού") },
+                title = {  Text(stringResource(R.string.add_song_text)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Πίσω")

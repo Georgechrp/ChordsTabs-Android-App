@@ -29,6 +29,9 @@ import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun MainNavGraph(
@@ -125,15 +128,18 @@ fun MainNavGraph(
         }
 
         composable("detailedSongView/{songTitle}") { backStackEntry ->
-            val songTitle = backStackEntry.arguments?.getString("songTitle") ?: "Untitled"
+            val songTitle = backStackEntry.arguments?.getString("songTitle")?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            } ?: "Untitled"
+
             DetailedSongView(
                 songId = songTitle,
                 isFullScreenState = false,
                 onBack = { navController.popBackStack() },
                 navController = navController,
-                mainViewModel = MainViewModel(),
-                homeViewModel = HomeViewModel(),
-                userViewModel = UserViewModel()
+                mainViewModel = viewModel(), // Χρησιμοποίησε `viewModel()` αντί για `MainViewModel()`
+                homeViewModel = viewModel(),
+                userViewModel = viewModel()
             )
         }
     }
