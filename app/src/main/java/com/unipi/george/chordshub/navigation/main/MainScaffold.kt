@@ -39,7 +39,7 @@ fun MainScaffold(navController: NavHostController) {
                 bottomBar = {
                     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                     if (!homeViewModel.isFullScreen.value && currentRoute !in bottomBarExcludedScreens) {
-                        MainBottomNavBar(navController)
+                        MainBottomNavBar(navController, homeViewModel.isFullScreen.value)
                     }
                 }
             ) { innerPadding ->

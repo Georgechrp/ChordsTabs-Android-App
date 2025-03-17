@@ -1,6 +1,5 @@
 package com.unipi.george.chordshub.screens.slidemenu
 
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
