@@ -36,7 +36,11 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.unipi.george.chordshub.utils.updateUserProfileImage
+import com.unipi.george.chordshub.utils.uploadImageToCloudinary
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnrememberedMutableInteractionSource")
 @Composable
@@ -78,20 +82,36 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
     val username = remember { mutableStateOf("Loading...") }
     var profileImageUrl by remember { mutableStateOf<String?>(null) }
     var selectedImage by remember { mutableStateOf<Uri?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     LaunchedEffect(userId) {
         userId?.let {
             AuthRepository.getUsernameFromFirestore(it) { fetchedUsername ->
                 username.value = fetchedUsername ?: "Unknown"
             }
-            profileImageUrl = getProfileImageUrl(it)
+            getProfileImageUrl(it)?.let { url ->
+                profileImageUrl = url
+                mainViewModel.setProfileImageUrl(url) // ✅ Ενημέρωση του MainViewModel
+            }
         }
     }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        selectedImage = uri
+        uri?.let { selectedUri ->
+            selectedImage = selectedUri // ✅ Δείχνει άμεσα την εικόνα στο UI
+
+            coroutineScope.launch {
+                val imageUrl = uploadImageToCloudinary(selectedUri, context)
+                if (imageUrl != null && userId != null) {
+                    updateUserProfileImage(userId, imageUrl) // ✅ Αποθήκευση στο Firestore
+                    profileImageUrl = imageUrl
+                    mainViewModel.setProfileImageUrl(imageUrl) // ✅ Ενημέρωση του MainViewModel
+                }
+            }
+        }
     }
 
     Box(
@@ -114,7 +134,6 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp)
         ) {
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
@@ -122,9 +141,9 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
             ) {
                 Image(
                     painter = if (selectedImage != null) {
-                        rememberAsyncImagePainter(selectedImage)
+                        rememberAsyncImagePainter(selectedImage) // ✅ Προβάλλει την τοπική εικόνα
                     } else if (profileImageUrl != null) {
-                        rememberAsyncImagePainter(profileImageUrl)
+                        rememberAsyncImagePainter(profileImageUrl) // ✅ Ανέβηκε στο Cloudinary, εμφάνιση από Firestore
                     } else {
                         painterResource(id = R.drawable.edit_user_image)
                     },
@@ -154,7 +173,7 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
             )
             MenuItem(
                 icon = Icons.Filled.Settings,
-                text =stringResource(R.string.settings_text),
+                text = stringResource(R.string.settings_text),
                 route = Screen.Settings.route,
                 mainViewModel = mainViewModel,
                 navController = navController
@@ -162,6 +181,8 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
         }
     }
 }
+
+
 
 @Composable
 fun UserProfileSection(

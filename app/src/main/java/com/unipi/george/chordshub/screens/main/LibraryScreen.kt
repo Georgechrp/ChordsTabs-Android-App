@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.components.MyAppTopBar
@@ -20,12 +21,14 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
 
     var showDialog by remember { mutableStateOf(false) }
     var playlistName by remember { mutableStateOf("") }
-    val context = LocalContext.current
+    var showAddSongDialog by remember { mutableStateOf(false) }
+    var selectedPlaylist by remember { mutableStateOf<String?>(null) }
+    var songTitle by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
             MyAppTopBar(
-                painter = painter,
+                mainViewModel = mainViewModel,
                 onMenuClick = onMenuClick
             ) {
                 Text("Βιβλιοθήκη", style = MaterialTheme.typography.headlineSmall)
@@ -44,8 +47,48 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
             if (playlists.isEmpty()) {
                 Text("Δεν υπάρχουν playlists ακόμα.")
             } else {
-                playlists.forEach { playlist ->
-                    Text(playlist, style = MaterialTheme.typography.bodyLarge)
+                playlists.forEach { (playlist, songs) ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(playlist, style = MaterialTheme.typography.bodyLarge)
+
+                            songs.forEach { song ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(song, style = MaterialTheme.typography.bodyMedium)
+                                    TextButton(onClick = {
+                                        viewModel.removeSongFromPlaylist(playlist, song) {}
+                                    }) {
+                                        Text("❌")
+                                    }
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                TextButton(onClick = {
+                                    selectedPlaylist = playlist
+                                    showAddSongDialog = true
+                                }) {
+                                    Text("➕ Προσθήκη τραγουδιού")
+                                }
+
+                                TextButton(onClick = {
+                                    viewModel.deletePlaylist(playlist) {}
+                                }) {
+                                    Text("🗑️ Διαγραφή Playlist")
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -82,6 +125,43 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
+                    Text("Άκυρο")
+                }
+            }
+        )
+    }
+
+    // Διάλογος για προσθήκη τραγουδιού σε playlist
+    if (showAddSongDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddSongDialog = false },
+            title = { Text("Προσθήκη Τραγουδιού") },
+            text = {
+                Column {
+                    Text("Δώσε το όνομα του τραγουδιού:")
+                    OutlinedTextField(
+                        value = songTitle,
+                        onValueChange = { songTitle = it },
+                        label = { Text("Όνομα Τραγουδιού") }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (songTitle.isNotBlank() && selectedPlaylist != null) {
+                        viewModel.addSongToPlaylist(selectedPlaylist!!, songTitle) { success ->
+                            if (success) {
+                                showAddSongDialog = false
+                                songTitle = ""
+                            }
+                        }
+                    }
+                }) {
+                    Text("Προσθήκη")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddSongDialog = false }) {
                     Text("Άκυρο")
                 }
             }

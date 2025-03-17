@@ -12,46 +12,54 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.ui.theme.checkedFilter
 import com.unipi.george.chordshub.ui.theme.filterColor
+import com.unipi.george.chordshub.viewmodels.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyAppTopBar(
-    painter: Painter,
+    mainViewModel: MainViewModel,
     onMenuClick: () -> Unit,
     content: @Composable RowScope.() -> Unit
 ) {
+    val profileImageUrl by mainViewModel.profileImageUrl.collectAsState()
 
     TopAppBar(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().background(Color.Transparent)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Transparent)
             ) {
                 CircularImageViewSmall(
-                    painter = painter,
+                    imageUrl = profileImageUrl, // ✅ Περνάμε το URL της εικόνας
                     onClick = onMenuClick
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(modifier = Modifier.weight(1f)) {
                     this@Row.content()
                 }
-
             }
         }
     )
 }
+
 
 
 @Composable
@@ -96,7 +104,7 @@ fun FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
 
 
 @Composable
-fun CircularImageViewSmall(painter: Painter, onClick: () -> Unit) {
+fun CircularImageViewSmall(imageUrl: String?, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(30.dp)
@@ -105,9 +113,18 @@ fun CircularImageViewSmall(painter: Painter, onClick: () -> Unit) {
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painter,
-            contentDescription = stringResource(R.string.circular_image_description)
-        )
+        if (imageUrl != null) {
+            Image(
+                painter = rememberAsyncImagePainter(imageUrl),
+                contentDescription = stringResource(R.string.circular_image_description),
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Image(
+                painter = painterResource(id = R.drawable.user_icon),
+                contentDescription = stringResource(R.string.circular_image_description),
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }

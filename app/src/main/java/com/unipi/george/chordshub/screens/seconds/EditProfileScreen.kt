@@ -104,48 +104,12 @@ fun ProfileCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            //ProfileImagePicker(selectedImage, onImageSelected, userId)
             UsernameInputField(newUsername, onUsernameChange)
             Spacer(modifier = Modifier.height(20.dp))
             SaveButton(onSave)
             CancelButton(onCancel)
         }
     }
-}
-
-@Composable
-fun ProfileImagePicker(selectedImage: Uri?, onImageSelected: (Uri?) -> Unit, userId: String) {
-    val context = LocalContext.current
-    var imageUrl by remember { mutableStateOf<String?>(null) }
-    val coroutineScope = rememberCoroutineScope()
-
-    LaunchedEffect(userId) {
-        coroutineScope.launch {
-            imageUrl = getProfileImageUrl(userId)
-        }
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        onImageSelected(uri)
-    }
-
-    Image(
-        painter = if (selectedImage != null) {
-            rememberAsyncImagePainter(selectedImage)
-        } else if (imageUrl != null) {
-            rememberAsyncImagePainter(imageUrl)
-        } else {
-            painterResource(id = R.drawable.edit_user_image)
-        },
-        contentDescription = "Profile Image",
-        modifier = Modifier
-            .size(100.dp)
-            .clip(CircleShape)
-            .clickable { launcher.launch("image/*") },
-        contentScale = ContentScale.Crop
-    )
 }
 
 suspend fun getProfileImageUrl(userId: String): String? {

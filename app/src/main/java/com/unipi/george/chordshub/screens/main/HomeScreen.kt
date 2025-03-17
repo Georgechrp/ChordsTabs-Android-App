@@ -80,7 +80,7 @@ fun HomeScreen(
                         .offset { IntOffset(x = 0, y = topBarOffset.roundToInt()) }
                         .background(Color.Transparent)
                 ) {
-                    MyAppTopBar(painter = painter, onMenuClick = onMenuClick) {
+                    MyAppTopBar(mainViewModel, onMenuClick = onMenuClick) {
                         Column {
                             FilterRow(
                                 selectedFilter = selectedFilter,

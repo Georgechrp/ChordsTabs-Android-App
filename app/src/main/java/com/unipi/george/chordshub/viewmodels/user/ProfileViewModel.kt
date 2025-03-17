@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/*
 class ProfileViewModel(private val userId: String) : ViewModel() {
 
     private val _profileState = MutableStateFlow(ProfileState())
@@ -65,6 +66,7 @@ class ProfileViewModel(private val userId: String) : ViewModel() {
         }
     }
 }
+*/
 
 data class ProfileState(
     val username: String = "Unknown",

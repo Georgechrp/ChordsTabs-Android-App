@@ -108,7 +108,7 @@ fun SearchScreen(
 @Composable
 fun SearchScreenTopBar(painter: Painter, onMenuClick: () -> Unit) {
     MyAppTopBar(
-        painter = painter,
+        mainViewModel = MainViewModel(),
         onMenuClick = onMenuClick
     ) {
         Text(

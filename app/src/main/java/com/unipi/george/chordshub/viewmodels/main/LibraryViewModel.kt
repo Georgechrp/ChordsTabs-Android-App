@@ -15,8 +15,8 @@ class LibraryViewModel : ViewModel() {
     private val userId = auth.currentUser?.uid
 
     // Οι playlists του χρήστη
-    private val _playlists = MutableStateFlow<List<String>>(emptyList())
-    val playlists: StateFlow<List<String>> = _playlists
+    private val _playlists = MutableStateFlow<Map<String, List<String>>>(emptyMap())
+    val playlists: StateFlow<Map<String, List<String>>> = _playlists
 
     init {
         loadLibraryData()
@@ -25,18 +25,52 @@ class LibraryViewModel : ViewModel() {
     private fun loadLibraryData() {
         userId?.let {
             viewModelScope.launch {
-                repository.getUserPlaylists(it) { userPlaylists ->
+                repository.getUserPlaylistsWithSongs(it) { userPlaylists ->
                     _playlists.value = userPlaylists
                 }
             }
         }
     }
 
+
     fun createPlaylist(playlistName: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
             repository.createPlaylist(id, playlistName) { success ->
                 if (success) {
-                    loadLibraryData() // Επαναφόρτωση για να εμφανιστεί η νέα playlist
+                    loadLibraryData()
+                }
+                onComplete(success)
+            }
+        }
+    }
+
+    fun addSongToPlaylist(playlistName: String, songTitle: String, onComplete: (Boolean) -> Unit) {
+        userId?.let { id ->
+            repository.addSongToPlaylist(id, playlistName, songTitle) { success ->
+                if (success) {
+                    loadLibraryData()
+                }
+                onComplete(success)
+            }
+        }
+    }
+
+    fun removeSongFromPlaylist(playlistName: String, songTitle: String, onComplete: (Boolean) -> Unit) {
+        userId?.let { id ->
+            repository.removeSongFromPlaylist(id, playlistName, songTitle) { success ->
+                if (success) {
+                    loadLibraryData()
+                }
+                onComplete(success)
+            }
+        }
+    }
+
+    fun deletePlaylist(playlistName: String, onComplete: (Boolean) -> Unit) {
+        userId?.let { id ->
+            repository.deletePlaylist(id, playlistName) { success ->
+                if (success) {
+                    loadLibraryData()
                 }
                 onComplete(success)
             }

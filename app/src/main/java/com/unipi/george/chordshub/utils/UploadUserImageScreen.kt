@@ -1,144 +1,70 @@
 package com.unipi.george.chordshub.utils
 
-import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
-import com.cloudinary.Cloudinary
-import com.cloudinary.utils.ObjectUtils
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 
-@Composable
-fun UploadUserImageScreen(onClose: () -> Unit) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var isUploading by remember { mutableStateOf(false) }
-
-    val imagePickerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            if (uri != null) {
-                imageUri = uri
-            }
-        }
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Spacer(modifier = Modifier.width(16.dp))
-
-            IconButton(onClick = onClose) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
-        }
-
-        imageUri?.let { uri ->
-            Image(
-                painter = rememberAsyncImagePainter(uri),
-                contentDescription = "Selected Image",
-                modifier = Modifier
-                    .size(150.dp)
-                    .padding(8.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-            Text("Choose Image")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                imageUri?.let { uri ->
-                    isUploading = true
-                    coroutineScope.launch {
-                        uploadImageToCloudinary(context, uri) { uploadedUrl ->
-                            isUploading = false
-                            if (uploadedUrl != null) {
-                                Log.d("Cloudinary", "Uploaded Image URL: $uploadedUrl")
-                                Toast.makeText(context, "Upload Successful!", Toast.LENGTH_SHORT).show()
-                                onClose()
-                            } else {
-                                Log.e("Cloudinary", "Upload failed")
-                            }
-                        }
-                    }
-                } ?: Log.e("Cloudinary", "No image selected")
-            },
-            enabled = !isUploading
-        ) {
-            Text(if (isUploading) "Uploading..." else "Upload Image")
-        }
-    }
-}
-
-
-suspend fun uploadImageToCloudinary(context: Context, imageUri: Uri, callback: (String?) -> Unit) {
-    withContext(Dispatchers.IO) {
+suspend fun uploadImageToCloudinary(imageUri: Uri, context: android.content.Context): String? {
+    return withContext(Dispatchers.IO) {
         try {
-            val cloudinary = Cloudinary(mapOf(
-                "cloud_name" to "ddqf5osur",
-                "api_key" to "139894567327143",
-                "api_secret" to "UzTkVWmfuu9DkJgU0RXFY4vMSn4"
-            ))
-
-            val file = getFileFromUri(context, imageUri)
-            val result = cloudinary.uploader().upload(file, ObjectUtils.emptyMap())
-            val imageUrl = result["secure_url"] as? String
-
-            withContext(Dispatchers.Main) { // ✅
-                Toast.makeText(context, "Upload Successful!", Toast.LENGTH_SHORT).show()
+            val inputStream: InputStream? = context.contentResolver.openInputStream(imageUri)
+            val tempFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
+            FileOutputStream(tempFile).use { outputStream ->
+                inputStream?.copyTo(outputStream)
             }
 
-            callback(imageUrl)
+            val cloudinaryUrl = "https://api.cloudinary.com/v1_1/ddqf5osur/image/upload"
+            val client = OkHttpClient()
+
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", tempFile.name, RequestBody.create("image/jpeg".toMediaTypeOrNull(), tempFile))
+                .addFormDataPart("upload_preset", "YOUR_UPLOAD_PRESET")
+                .build()
+
+            val request = Request.Builder()
+                .url(cloudinaryUrl)
+                .post(requestBody)
+                .build()
+
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
+
+            if (response.isSuccessful && responseBody != null) {
+                val jsonObject = org.json.JSONObject(responseBody)
+                return@withContext jsonObject.getString("secure_url") // ✅ Επιστρέφουμε το URL της εικόνας
+            } else {
+                Log.e("Cloudinary", "Upload failed: $responseBody")
+            }
         } catch (e: Exception) {
-            e.printStackTrace()
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Upload Failed: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-            callback(null)
+            Log.e("Cloudinary", "Exception: ${e.message}")
         }
+        null
     }
 }
 
-fun getFileFromUri(context: Context, uri: Uri): File {
-    val tempFile = File(context.cacheDir, "temp_image")
 
-    context.contentResolver.openInputStream(uri)?.use { inputStream ->
-        FileOutputStream(tempFile).use { outputStream ->
-            inputStream.copyTo(outputStream)
+suspend fun updateUserProfileImage(userId: String, imageUrl: String) {
+    val userRef = FirebaseFirestore.getInstance().collection("users").document(userId)
+
+    userRef.update("profileImageUrl", imageUrl)
+        .addOnSuccessListener {
+            Log.d("Firestore", "✅ Profile image updated successfully!")
         }
-    } ?: throw IllegalArgumentException("Failed to open InputStream from URI")
-
-    return tempFile
+        .addOnFailureListener {
+            Log.e("Firestore", "❌ Failed to update profile image: ${it.message}")
+        }
 }
