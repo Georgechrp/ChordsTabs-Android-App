@@ -3,47 +3,39 @@ package com.unipi.george.chordshub
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.navigation.compose.rememberNavController
-import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.repository.AuthRepository
-import com.unipi.george.chordshub.ui.theme.ChordsHubTheme
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 import com.unipi.george.chordshub.navigation.auth.AuthFlowNavGraph
 import com.unipi.george.chordshub.navigation.main.MainScaffold
-import com.unipi.george.chordshub.repository.UserStatsRepository
-import com.unipi.george.chordshub.sharedpreferences.UserPreferences
-import com.unipi.george.chordshub.utils.UserSessionManager
-import com.unipi.george.chordshub.viewmodels.SettingsViewModelFactory
+import com.unipi.george.chordshub.sharedpreferences.AppSettingsPreferences
+import com.unipi.george.chordshub.ui.theme.ChordsHubTheme
+import com.unipi.george.chordshub.utils.ObserveUserSession
+import com.unipi.george.chordshub.viewmodels.MainViewModel
+import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
-import com.unipi.george.chordshub.viewmodels.user.UserViewModel
+import com.unipi.george.chordshub.viewmodels.SettingsViewModelFactory
 
 class MainActivity : ComponentActivity() {
-    private val sessionManager by lazy {
-        UserSessionManager(UserStatsRepository(FirebaseFirestore.getInstance()))
-    }
-    private lateinit var userPreferences: UserPreferences
+    private lateinit var sessionViewModel: SessionViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        userPreferences = UserPreferences(this)
-        val isDarkMode = userPreferences.isDarkMode()
+
+        val appSettingsPreferences = AppSettingsPreferences(this)
+
+        sessionViewModel = ViewModelProvider(this)[SessionViewModel::class.java]
+
         setContent {
-            val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(userPreferences))
-            settingsViewModel.onThemeChange = { recreate() }
+            val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(appSettingsPreferences))
 
-            val darkModeState by settingsViewModel.darkMode
-
+            val darkModeState = settingsViewModel.darkMode.value
+            val isUserLoggedInState = sessionViewModel.isUserLoggedInState
 
             ChordsHubTheme(darkTheme = darkModeState) {
-                val userViewModel: UserViewModel = viewModel()
-                ObserveUserSession(userViewModel)
                 val navController = rememberNavController()
-                val isUserLoggedInState = AuthRepository.isUserLoggedInState
+
+                ObserveUserSession(sessionViewModel)
 
                 if (isUserLoggedInState.value) {
                     MainScaffold(navController)
@@ -54,52 +46,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    private fun ObserveUserSession(userViewModel: UserViewModel) {
-        val userId = userViewModel.userId
-        LaunchedEffect(userId) {
-            if (!userId.isNullOrEmpty()) {
-                sessionManager.startSession(userId)
-            } else {
-                sessionManager.endSession(false)
-            }
-        }
-    }
-
     override fun onStop() {
         super.onStop()
-        sessionManager.endSession(isChangingConfigurations)
+        sessionViewModel.endSession(isChangingConfigurations)
     }
 }
-
-
-/*
-fun addDataForFurElise() {
-    val repository = FirestoreRepository(FirebaseFirestore.getInstance())
-
-    lifecycleScope.launch {
-        val songData = SongData(
-            title = "Für Elise",
-            artist = "Ludwig van Beethoven",
-            key = "A Minor",
-            bpm = 75, // Μέτριο tempo
-            genres = listOf("Classical"),
-            createdAt = System.currentTimeMillis().toString(),
-            creatorId = "admin",
-            lyrics = listOf(
-                SongLine(
-                    lineNumber = 1,
-                    text = "Für Elise, section 1 melody",
-                    chords = listOf(ChordPosition("Am", 0), ChordPosition("E", 8), ChordPosition("G", 16), ChordPosition("C", 24))
-                ),
-                SongLine(
-                    lineNumber = 2,
-                    text = "Für Elise, section 2 transition",
-                    chords = listOf(ChordPosition("F", 0), ChordPosition("C", 10), ChordPosition("G", 20), ChordPosition("E", 28))
-                )
-            )
-        )
-
-        repository.addSongData("fur_elise_beethoven", songData)
-    }
-}*/

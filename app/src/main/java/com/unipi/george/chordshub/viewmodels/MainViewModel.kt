@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MainViewModel : ViewModel() {
-
-
     private val _isMenuOpen = mutableStateOf(false)
     val isMenuOpen: State<Boolean> = _isMenuOpen
 

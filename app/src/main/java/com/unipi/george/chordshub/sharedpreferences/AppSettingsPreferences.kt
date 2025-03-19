@@ -3,7 +3,7 @@ package com.unipi.george.chordshub.sharedpreferences
 import android.content.Context
 import android.content.SharedPreferences
 
-class UserPreferences(context: Context) {
+class AppSettingsPreferences(context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 

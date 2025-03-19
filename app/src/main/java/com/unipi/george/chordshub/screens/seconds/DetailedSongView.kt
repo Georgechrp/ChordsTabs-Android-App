@@ -65,6 +65,7 @@ import com.unipi.george.chordshub.utils.QRCodeDialog
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -94,23 +95,29 @@ fun DetailedSongView(
 
     val userId = AuthRepository.getUserId()
 
-    LaunchedEffect(isScrolling.value) {
+    LaunchedEffect(isScrolling.value, scrollSpeed.floatValue) {
         while (isScrolling.value) {
-            listState.animateScrollBy(scrollSpeed.floatValue)
-            kotlinx.coroutines.yield()
+            val step = (scrollSpeed.floatValue / 10).coerceIn(1f, 20f) // ✅ Δυναμικό βήμα με όριο 1f-20f
+            listState.animateScrollBy(step) // ✅ Το βήμα εξαρτάται από την ταχύτητα
+            delay((1000 / scrollSpeed.floatValue).toLong()) // ✅ Δυναμική προσαρμογή του χρόνου αναμονής
         }
     }
 
+
     LaunchedEffect(songId) {
-        transposeValue.value = transposePreferences.getTransposeValue(songId)
-        Log.d("DetailedSongView", "LaunchedEffect triggered for songId: $songId")
+        val savedTranspose = transposePreferences.getTransposeValue(songId)
+        transposeValue.value = savedTranspose
+
+        Log.d("TransposeTest", "Loaded transpose value: $savedTranspose for songId: $songId")
+
         val songData = repository.getSongDataAsync(songId)
         songDataState.value = songData
-        // Καταγραφή του τραγουδιού στη λίστα recentSongs
+
         userId?.let { id ->
             userViewModel.addRecentSong(id, songData?.title ?: "Untitled")
         }
     }
+
 
     fun applyTranspose() {
         songDataState.value = songDataState.value?.copy(
@@ -123,6 +130,8 @@ fun DetailedSongView(
             }
         )
         transposePreferences.saveTransposeValue(songId, transposeValue.value)
+        Log.d("TransposeTest", "Saved transpose value: ${transposeValue.value} for songId: $songId")
+
     }
 
     BackHandler {
@@ -433,17 +442,26 @@ fun OptionsDialog(
 
 
 fun getNewKey(originalKey: String, transpose: Int): String {
-    val notes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
+    val sharpNotes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
+    val flatNotes = listOf("C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B")
 
+    // Αναγνώριση της ρίζας και του υπολοίπου
     val regex = Regex("^([A-Ga-g#b]+)(.*)$")
     val matchResult = regex.matchEntire(originalKey) ?: return originalKey
-
     val (rootNote, suffix) = matchResult.destructured
-    val normalizedRoot = rootNote.replace("b", "#") // Αντικατάσταση "b" με "#"
 
-    val index = notes.indexOfFirst { it.equals(normalizedRoot, ignoreCase = true) }
-    if (index == -1) return originalKey // Αν δεν βρεθεί, επιστρέφουμε το ίδιο
+    // Προσδιορισμός αν η συγχορδία είναι flat ή sharp
+    val isFlat = rootNote.contains("b")
+    val isSharp = rootNote.contains("#")
 
-    val newIndex = (index + transpose + notes.size) % notes.size
-    return notes[newIndex] + suffix
+    // Εύρεση τρέχοντος index για την ρίζα
+    val currentIndex = if (isFlat) flatNotes.indexOf(rootNote) else sharpNotes.indexOf(rootNote)
+    if (currentIndex == -1) return originalKey // Επιστρέφουμε την αρχική αν δεν βρεθεί
+
+    // Υπολογισμός του νέου index
+    val newIndex = (currentIndex + transpose + 12) % 12
+    val newRootNote = if (isFlat) flatNotes[newIndex] else sharpNotes[newIndex]
+
+    return newRootNote + suffix // Διατήρηση του υπολοίπου της συγχορδίας
 }
+
