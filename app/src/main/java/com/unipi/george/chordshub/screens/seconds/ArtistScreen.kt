@@ -12,6 +12,11 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.Info
 
 import android.util.Log
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.models.SongData
+import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.utils.ArtistInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,7 +27,15 @@ import java.net.URLEncoder
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistScreen(artistName: String, navController: NavController) {
+    val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
     var showInfoSheet by remember { mutableStateOf(false) }
+    var songs by remember { mutableStateOf<List<SongData>>(emptyList()) }
+
+  /*  LaunchedEffect(artistName) {
+        repository.getSongsByArtist(artistName) { fetchedSongs ->
+            songs = fetchedSongs
+        }
+    }*/
 
     Scaffold(
         topBar = {
@@ -47,11 +60,16 @@ fun ArtistScreen(artistName: String, navController: NavController) {
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                //ArtistImage(artistName)
-                Text(text = artistName, style = MaterialTheme.typography.headlineMedium)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(songs) { song ->
+                    Text(text = song.title ?: "Unknown Title", style = MaterialTheme.typography.titleMedium)
+                    // Εδώ μπορείς να βάλεις και SongCard ή άλλο custom Composable για εμφάνιση
+                }
             }
-
         }
     }
 
@@ -59,6 +77,7 @@ fun ArtistScreen(artistName: String, navController: NavController) {
         ArtistInfoBottomSheet(artistName) { showInfoSheet = false }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

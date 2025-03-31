@@ -92,6 +92,20 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
         }
     }
 
+    fun getSongsByArtist(artistName: String, callback: (List<SongData>) -> Unit) {
+        db.collection("songs")
+            .whereEqualTo("artist", artistName)
+            .get()
+            .addOnSuccessListener { result ->
+                val songs = result.documents.mapNotNull { it.toObject(SongData::class.java) }
+                callback(songs)
+            }
+            .addOnFailureListener { exception ->
+                println("Error fetching songs for artist $artistName: $exception")
+                callback(emptyList())
+            }
+    }
+
     suspend fun addSongData(songId: String, songData: SongData) {
         val songMap = hashMapOf(
             "title" to songData.title,
@@ -192,7 +206,6 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
                 callback(emptyList())
             }
     }
-
 
 
     fun searchSongs(query: String, callback: (List<Triple<String, String, String>>) -> Unit) {

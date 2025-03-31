@@ -13,7 +13,6 @@ object AuthRepository {
     @SuppressLint("StaticFieldLeak")
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-
     val isUserLoggedInState = mutableStateOf(isUserLoggedIn())
     val fullNameState = mutableStateOf(getFullName())
 

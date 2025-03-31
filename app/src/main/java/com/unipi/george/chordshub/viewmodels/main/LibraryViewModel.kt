@@ -14,7 +14,6 @@ class LibraryViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val userId = auth.currentUser?.uid
 
-    // Οι playlists του χρήστη
     private val _playlists = MutableStateFlow<Map<String, List<String>>>(emptyMap())
     val playlists: StateFlow<Map<String, List<String>>> = _playlists
 

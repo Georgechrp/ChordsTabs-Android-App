@@ -97,9 +97,9 @@ fun DetailedSongView(
 
     LaunchedEffect(isScrolling.value, scrollSpeed.floatValue) {
         while (isScrolling.value) {
-            val step = (scrollSpeed.floatValue / 10).coerceIn(1f, 20f) // ✅ Δυναμικό βήμα με όριο 1f-20f
-            listState.animateScrollBy(step) // ✅ Το βήμα εξαρτάται από την ταχύτητα
-            delay((1000 / scrollSpeed.floatValue).toLong()) // ✅ Δυναμική προσαρμογή του χρόνου αναμονής
+            val step = (scrollSpeed.floatValue / 10).coerceIn(1f, 20f)
+            listState.animateScrollBy(step)
+            delay((1000 / scrollSpeed.floatValue).toLong())
         }
     }
 

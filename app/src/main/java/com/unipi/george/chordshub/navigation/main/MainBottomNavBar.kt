@@ -24,7 +24,7 @@ import com.unipi.george.chordshub.navigation.Screen
 @Composable
 fun MainBottomNavBar(
     navController: NavController,
-    isFullScreen: Boolean // 🔹 Νέα παράμετρος για έλεγχο ορατότητας
+    isFullScreen: Boolean
 ) {
     val items = listOf(
         Screen.Home,

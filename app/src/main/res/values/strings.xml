@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ChordsHub</string>
+    <string name="app_name">ChordsTabs</string>
 
     <!--                   LoginScreen                    -->
     <!-- Labels for input fields -->
@@ -50,5 +50,7 @@
     <!--   slide       -->
 
 
+    <!--       -->
+    <string name="already_exists_the_name_of_playlist">⛔Already exists this name</string>
 
 </resources>

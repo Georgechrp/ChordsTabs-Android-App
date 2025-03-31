@@ -16,12 +16,12 @@ fun AuthFlowNavGraph(
     navController: NavHostController,
     isUserLoggedInState: MutableState<Boolean>
 ) {
-    val fullNameState = AuthRepository.fullNameState
     NavHost(
         navController = navController,
         startDestination = Screen.Login.route
     ) {
         composable(Screen.Login.route) {
+            val fullNameState = AuthRepository.fullNameState
             LoginScreen(navController) {
                 isUserLoggedInState.value = true
                 fullNameState.value = AuthRepository.getFullName()

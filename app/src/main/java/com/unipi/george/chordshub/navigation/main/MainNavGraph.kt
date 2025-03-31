@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.navigation.Screen
+import com.unipi.george.chordshub.navigation.auth.AuthFlowNavGraph
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.fullNameState
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
@@ -19,6 +20,7 @@ import com.unipi.george.chordshub.screens.seconds.DetailedSongView
 import com.unipi.george.chordshub.screens.seconds.EditProfileScreen
 import com.unipi.george.chordshub.screens.seconds.ProfileMenu
 import com.unipi.george.chordshub.screens.seconds.ProfileScreen
+import com.unipi.george.chordshub.screens.seconds.WelcomeScreen
 import com.unipi.george.chordshub.screens.slidemenu.RecentsScreen
 import com.unipi.george.chordshub.screens.slidemenu.SettingsScreen
 import com.unipi.george.chordshub.screens.slidemenu.UploadScreen
@@ -26,6 +28,7 @@ import com.unipi.george.chordshub.sharedpreferences.AppSettingsPreferences
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
+import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
@@ -36,7 +39,8 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun MainNavGraph(
     navController: NavHostController,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    sessionViewModel : SessionViewModel
 ) {
     val homeViewModel: HomeViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
@@ -137,11 +141,16 @@ fun MainNavGraph(
                 isFullScreenState = false,
                 onBack = { navController.popBackStack() },
                 navController = navController,
-                mainViewModel = viewModel(), // Χρησιμοποίησε `viewModel()` αντί για `MainViewModel()`
+                mainViewModel = viewModel(),
                 homeViewModel = viewModel(),
                 userViewModel = viewModel()
             )
         }
+        composable(Screen.Welcome.route) {
+            WelcomeScreen(navController, sessionViewModel)
+        }
+
+
     }
 
     ProfileMenu(mainViewModel, navController = navController)

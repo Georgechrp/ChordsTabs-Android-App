@@ -6,10 +6,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.components.MyAppTopBar
 import com.unipi.george.chordshub.viewmodels.main.LibraryViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
@@ -24,6 +25,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
     var showAddSongDialog by remember { mutableStateOf(false) }
     var selectedPlaylist by remember { mutableStateOf<String?>(null) }
     var songTitle by remember { mutableStateOf("") }
+    val duplicateError = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -35,7 +37,18 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
             }
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
+            FloatingActionButton(onClick = {
+                val existingNames = playlists.keys
+
+                // Βρίσκουμε το μικρότερο διαθέσιμο όνομα
+                var nextNumber = 1
+                while (existingNames.contains("My Playlist #$nextNumber")) {
+                    nextNumber++
+                }
+
+                playlistName = "My Playlist #$nextNumber"
+                showDialog = true
+            }) {
                 Text("+", style = MaterialTheme.typography.headlineSmall)
             }
         }
@@ -102,20 +115,37 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
             text = {
                 Column {
                     Text("Δώσε ένα όνομα για τη νέα playlist σου:")
+
                     OutlinedTextField(
                         value = playlistName,
-                        onValueChange = { playlistName = it },
+                        onValueChange = {
+                            playlistName = it
+                            duplicateError.value = false // reset error όταν ο χρήστης αλλάζει κάτι
+                        },
                         label = { Text("Όνομα Playlist") }
                     )
+                    if (duplicateError.value) {
+                        Text(
+                            text = stringResource(R.string.already_exists_the_name_of_playlist),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
                     if (playlistName.isNotBlank()) {
-                        viewModel.createPlaylist(playlistName) { success ->
-                            if (success) {
-                                showDialog = false
-                                playlistName = ""
+                        if (playlistName in playlists.keys) {
+                            duplicateError.value = true // Ενεργοποίηση μηνύματος λάθους
+                        } else {
+                            viewModel.createPlaylist(playlistName) { success ->
+                                if (success) {
+                                    showDialog = false
+                                    playlistName = ""
+                                    duplicateError.value = false
+                                }
                             }
                         }
                     }
@@ -130,6 +160,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
             }
         )
     }
+
 
     // Διάλογος για προσθήκη τραγουδιού σε playlist
     if (showAddSongDialog) {
