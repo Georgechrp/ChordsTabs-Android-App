@@ -1,5 +1,9 @@
 package com.unipi.george.chordshub.screens.main
 
+import android.net.Uri
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,6 +19,7 @@ import com.unipi.george.chordshub.components.MyAppTopBar
 import com.unipi.george.chordshub.viewmodels.main.LibraryViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel: MainViewModel, onMenuClick: () -> Unit) {
     val viewModel: LibraryViewModel = viewModel()
@@ -26,6 +31,10 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
     var selectedPlaylist by remember { mutableStateOf<String?>(null) }
     var songTitle by remember { mutableStateOf("") }
     val duplicateError = remember { mutableStateOf(false) }
+    val showBottomSheet = remember { mutableStateOf(false) }
+
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var newPlaylistName by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -65,7 +74,17 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                    ) {
+                            .combinedClickable(
+                                onClick = {
+                                    navController.navigate("playlist_detail/${Uri.encode(playlist)}")
+                                },
+                                onLongClick = {
+                                    selectedPlaylist = playlist
+                                    showBottomSheet.value = true
+                                }
+                            )
+                    )
+                    {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(playlist, style = MaterialTheme.typography.bodyLarge)
 
@@ -83,7 +102,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                                 }
                             }
 
-                            Row(
+                            /*Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
@@ -97,9 +116,9 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                                 TextButton(onClick = {
                                     viewModel.deletePlaylist(playlist) {}
                                 }) {
-                                    Text("🗑️ Διαγραφή Playlist")
+                                    Text("🗑️")
                                 }
-                            }
+                            }*/
                         }
                     }
                 }
@@ -138,7 +157,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                 TextButton(onClick = {
                     if (playlistName.isNotBlank()) {
                         if (playlistName in playlists.keys) {
-                            duplicateError.value = true // Ενεργοποίηση μηνύματος λάθους
+                            duplicateError.value = true
                         } else {
                             viewModel.createPlaylist(playlistName) { success ->
                                 if (success) {
@@ -198,4 +217,104 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
             }
         )
     }
+
+    if (showBottomSheet.value && selectedPlaylist != null) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showBottomSheet.value = false
+                selectedPlaylist = null
+            },
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = selectedPlaylist ?: "",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                TextButton(onClick = {
+                    newPlaylistName = selectedPlaylist ?: ""
+                    showRenameDialog = true
+                    showBottomSheet.value = false
+                }) {
+                    Text("✏️ Μετονομασία Playlist")
+                }
+
+
+
+                TextButton(onClick = {
+                    showAddSongDialog = true
+                    showBottomSheet.value = false
+                }) {
+                    Text("➕ Προσθήκη τραγουδιού")
+                }
+
+                TextButton(onClick = {
+                    viewModel.deletePlaylist(selectedPlaylist!!) {}
+                    showBottomSheet.value = false
+                }) {
+                    Text("🗑️ Διαγραφή Playlist")
+                }
+            }
+        }
+    }
+
+    if (showRenameDialog && selectedPlaylist != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showRenameDialog = false
+                newPlaylistName = ""
+            },
+            title = { Text("Μετονομασία Playlist") },
+            text = {
+                Column {
+                    Text("Δώσε νέο όνομα για την playlist:")
+                    OutlinedTextField(
+                        value = newPlaylistName,
+                        onValueChange = { newPlaylistName = it },
+                        label = { Text("Νέο όνομα") }
+                    )
+                    if (newPlaylistName in playlists.keys && newPlaylistName != selectedPlaylist) {
+                        Text(
+                            text = stringResource(R.string.already_exists_the_name_of_playlist),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (newPlaylistName.isNotBlank()
+                        && newPlaylistName != selectedPlaylist
+                        && newPlaylistName !in playlists.keys
+                    ) {
+                        viewModel.renamePlaylist(selectedPlaylist!!, newPlaylistName) {
+                            showRenameDialog = false
+                            selectedPlaylist = null
+                            newPlaylistName = ""
+                        }
+                    }
+                }) {
+                    Text("Αποθήκευση")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showRenameDialog = false
+                    newPlaylistName = ""
+                }) {
+                    Text("Άκυρο")
+                }
+            }
+        )
+    }
+
+
 }

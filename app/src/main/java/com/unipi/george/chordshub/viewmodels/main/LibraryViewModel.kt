@@ -31,6 +31,15 @@ class LibraryViewModel : ViewModel() {
         }
     }
 
+    fun renamePlaylist(oldName: String, newName: String, onComplete: (Boolean) -> Unit) {
+        userId?.let { id ->
+            repository.renamePlaylist(id, oldName, newName) { success ->
+                if (success) loadLibraryData()
+                onComplete(success)
+            }
+        }
+    }
+
 
     fun createPlaylist(playlistName: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->

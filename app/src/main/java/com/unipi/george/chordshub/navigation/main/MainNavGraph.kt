@@ -18,6 +18,7 @@ import com.unipi.george.chordshub.screens.main.*
 import com.unipi.george.chordshub.screens.seconds.ArtistScreen
 import com.unipi.george.chordshub.screens.seconds.DetailedSongView
 import com.unipi.george.chordshub.screens.seconds.EditProfileScreen
+import com.unipi.george.chordshub.screens.seconds.PlaylistDetailScreen
 import com.unipi.george.chordshub.screens.seconds.ProfileMenu
 import com.unipi.george.chordshub.screens.seconds.ProfileScreen
 import com.unipi.george.chordshub.screens.seconds.WelcomeScreen
@@ -149,8 +150,14 @@ fun MainNavGraph(
         composable(Screen.Welcome.route) {
             WelcomeScreen(navController, sessionViewModel)
         }
-
-
+        composable("playlist_detail/{playlistName}") { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("playlistName") ?: return@composable
+            PlaylistDetailScreen(
+                playlistName = name,
+                onBack = { navController.popBackStack() },
+                viewModel = viewModel()
+            )
+        }
     }
 
     ProfileMenu(mainViewModel, navController = navController)

@@ -414,5 +414,26 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
     }
 
 
+    fun renamePlaylist(userId: String, oldName: String, newName: String, callback: (Boolean) -> Unit) {
+        val userDocRef = db.collection("users").document(userId)
+
+        userDocRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val playlists = document.get("playlists") as? MutableList<Map<String, Any>> ?: mutableListOf()
+                    val updatedPlaylists = playlists.map {
+                        if (it["name"] == oldName) {
+                            it.toMutableMap().apply { put("name", newName) }
+                        } else it
+                    }
+                    userDocRef.update("playlists", updatedPlaylists)
+                        .addOnSuccessListener { callback(true) }
+                        .addOnFailureListener { callback(false) }
+                } else callback(false)
+            }
+            .addOnFailureListener { callback(false) }
+    }
+
+
 
 }
