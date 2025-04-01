@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -51,7 +52,7 @@ fun QRCodeDialog(showDialog: MutableState<Boolean>, songId: String) {
                     Text("Κλείσιμο")
                 }
             },
-            title = { Text("Κοινοποίηση μέσω QR") },
+            title = { Text(stringResource(R.string.generate_qr_code_text)) },
             text = {
                 val qrBitmap = generateQRCode(songId)
                 qrBitmap?.let {
@@ -87,7 +88,7 @@ fun QRCodeScannerButton(viewModel: SearchViewModel) {
             .clickable {
                 val options = ScanOptions()
                 options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                options.setPrompt("Σκάναρε το QR Code")
+                options.setPrompt("Scan a QR Code")
                 options.setCameraId(0)
                 options.setOrientationLocked(true)
                 options.setBeepEnabled(true)

@@ -27,7 +27,7 @@ import java.net.URLEncoder
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistScreen(artistName: String, navController: NavController) {
-    val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
+   // val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
     var showInfoSheet by remember { mutableStateOf(false) }
     var songs by remember { mutableStateOf<List<SongData>>(emptyList()) }
 

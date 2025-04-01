@@ -16,7 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.viewmodels.main.LibraryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +47,7 @@ fun PlaylistDetailScreen(
             .padding(paddingValues)
             .fillMaxSize()) {
             if (songs.isEmpty()) {
-                Text("Δεν υπάρχουν τραγούδια.", modifier = Modifier.padding(16.dp))
+                Text(stringResource(R.string.no_songs_here), modifier = Modifier.padding(16.dp))
             } else {
                 songs.forEach { song ->
                     Text(

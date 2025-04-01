@@ -92,7 +92,7 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
             }
             getProfileImageUrl(it)?.let { url ->
                 profileImageUrl = url
-                mainViewModel.setProfileImageUrl(url) // ✅ Ενημέρωση του MainViewModel
+                mainViewModel.setProfileImageUrl(url)
             }
         }
     }
@@ -101,14 +101,14 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { selectedUri ->
-            selectedImage = selectedUri // ✅ Δείχνει άμεσα την εικόνα στο UI
+            selectedImage = selectedUri
 
             coroutineScope.launch {
                 val imageUrl = uploadImageToCloudinary(selectedUri, context)
                 if (imageUrl != null && userId != null) {
-                    updateUserProfileImage(userId, imageUrl) // ✅ Αποθήκευση στο Firestore
+                    updateUserProfileImage(userId, imageUrl)
                     profileImageUrl = imageUrl
-                    mainViewModel.setProfileImageUrl(imageUrl) // ✅ Ενημέρωση του MainViewModel
+                    mainViewModel.setProfileImageUrl(imageUrl)
                 }
             }
         }

@@ -180,7 +180,6 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
         )
     }
 
-
     // Διάλογος για προσθήκη τραγουδιού σε playlist
     if (showAddSongDialog) {
         AlertDialog(
@@ -218,6 +217,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
         )
     }
 
+    //Playlists's options
     if (showBottomSheet.value && selectedPlaylist != null) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -242,7 +242,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                     showRenameDialog = true
                     showBottomSheet.value = false
                 }) {
-                    Text("✏️ Μετονομασία Playlist")
+                    Text(stringResource(R.string.rename_playlist_text))
                 }
 
 
@@ -251,33 +251,34 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                     showAddSongDialog = true
                     showBottomSheet.value = false
                 }) {
-                    Text("➕ Προσθήκη τραγουδιού")
+                    Text(stringResource(R.string.add_song_text2))
                 }
 
                 TextButton(onClick = {
                     viewModel.deletePlaylist(selectedPlaylist!!) {}
                     showBottomSheet.value = false
                 }) {
-                    Text("🗑️ Διαγραφή Playlist")
+                    Text(stringResource(R.string.delete_playlist_text))
                 }
             }
         }
     }
 
+    //Rename dialog
     if (showRenameDialog && selectedPlaylist != null) {
         AlertDialog(
             onDismissRequest = {
                 showRenameDialog = false
                 newPlaylistName = ""
             },
-            title = { Text("Μετονομασία Playlist") },
+            title = { Text(stringResource(R.string.rename_playlist_text)) },
             text = {
                 Column {
-                    Text("Δώσε νέο όνομα για την playlist:")
+                    Text(stringResource(R.string.give_a_name_to_playlist))
                     OutlinedTextField(
                         value = newPlaylistName,
                         onValueChange = { newPlaylistName = it },
-                        label = { Text("Νέο όνομα") }
+                        label = { Text(stringResource(R.string.new_name_text)) }
                     )
                     if (newPlaylistName in playlists.keys && newPlaylistName != selectedPlaylist) {
                         Text(
@@ -302,7 +303,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                         }
                     }
                 }) {
-                    Text("Αποθήκευση")
+                    Text(stringResource(R.string.save_button_text))
                 }
             },
             dismissButton = {
@@ -310,11 +311,12 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                     showRenameDialog = false
                     newPlaylistName = ""
                 }) {
-                    Text("Άκυρο")
+                    Text(stringResource(R.string.cancel_button_text))
                 }
             }
         )
     }
 
-
 }
+
+

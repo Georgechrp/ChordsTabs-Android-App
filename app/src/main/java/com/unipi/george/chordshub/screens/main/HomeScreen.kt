@@ -39,14 +39,10 @@ fun HomeScreen(
     val songList by homeViewModel.songList.collectAsState()
     var selectedFilter by remember { mutableStateOf("All") }
     val selectedTitle = remember { mutableStateOf<String?>(null) }
-
     val isMenuOpen by mainViewModel.isMenuOpen
     val isFullScreenState by homeViewModel.isFullScreen.collectAsState()
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-
-    // Κρατάμε την τρέχουσα θέση του top bar
-    var topBarOffset by rememberSaveable { mutableFloatStateOf(0f) }
+    var topBarOffset by rememberSaveable { mutableFloatStateOf(0f) } // Κρατάμε την τρέχουσα θέση του top br
 
     // Nested Scroll για σωστό collapsing behavior
     val nestedScrollConnection = remember {

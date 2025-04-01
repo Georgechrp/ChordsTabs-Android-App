@@ -10,9 +10,8 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
 
     private val usersCollection = db.collection("users")
 
-    /**
-     * 🔥 Αυξάνει έναν αριθμητικό μετρητή στο Firestore για τον χρήστη
-     */
+
+     // Αυξάνει έναν αριθμητικό μετρητή στο Firestore για τον χρήστη
     private fun incrementUserStat(userId: String, field: String) {
         val userRef = usersCollection.document(userId)
         db.runTransaction { transaction ->
@@ -40,9 +39,8 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
         incrementUserStat(userId, "totalSongsFavorited")
     }
 
-    /**
-     * 🔥 Ενημερώνει το τελευταίο login του χρήστη
-     */
+
+    // Ενημερώνει το τελευταίο login του χρήστη
     fun updateLastLogin(userId: String) {
         usersCollection.document(userId)
             .update("lastLogin", System.currentTimeMillis().toString())
@@ -56,7 +54,6 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
 
 
     //Ενημερώνει το συνολικό χρόνο χρήσης της εφαρμογής (π.χ. σε λεπτά)
-
     fun updateTotalTimeSpent(userId: String, minutes: Int) {
         addTotalTimeSpentIfMissing(userId)
 

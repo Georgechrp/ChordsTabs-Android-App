@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
@@ -15,16 +14,8 @@ import com.unipi.george.chordshub.repository.AuthRepository
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import kotlinx.coroutines.CoroutineScope
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import coil.compose.rememberAsyncImagePainter
 import android.net.Uri
+import androidx.compose.ui.res.stringResource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
@@ -190,7 +181,7 @@ fun UsernameInputField(newUsername: String, onUsernameChange: (String) -> Unit) 
     OutlinedTextField(
         value = newUsername,
         onValueChange = onUsernameChange,
-        label = { Text("Username") },
+        label = { Text(stringResource(R.string.username_text)) },
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
     )
@@ -203,7 +194,7 @@ fun SaveButton(onSave: () -> Unit) {
         shape = RoundedCornerShape(8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Save Changes")
+        Text(stringResource(R.string.save_changes_text))
     }
 }
 
@@ -212,6 +203,6 @@ fun CancelButton(onCancel: () -> Unit) {
     TextButton(
         onClick = onCancel
     ) {
-        Text("Cancel", color = Color.Gray)
+        Text(stringResource(R.string.cancel_button_text), color = Color.Gray)
     }
 }

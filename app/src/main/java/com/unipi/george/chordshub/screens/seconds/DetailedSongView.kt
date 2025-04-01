@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.repository.AuthRepository
@@ -87,8 +88,6 @@ fun DetailedSongView(
     val listState = rememberLazyListState()
     val showDialog = remember { mutableStateOf(false) }
     val showQRCodeDialog = remember { mutableStateOf(false) }
-
-
     val context = LocalContext.current
     val transposePreferences = remember { TransposePreferences(context) }
 
@@ -310,9 +309,9 @@ fun ControlSpeed(scrollSpeed: MutableState<Float>, isSpeedControlVisible: Mutabl
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Scroll Speed", fontSize = 14.sp)
+                Text(stringResource(R.string.scroll_speed_text), fontSize = 14.sp)
                 IconButton(onClick = { isSpeedControlVisible.value = false }) {
-                    Text("❌")
+                    Text(stringResource(R.string.X_Text))
                 }
             }
             Slider(
@@ -374,10 +373,10 @@ fun OptionsDialog(
     if (showDialog.value) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
-            title = { Text("Transpose Options") },
+            title = { Text(stringResource((R.string.Options_header))) },
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Transpose by:", fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
+                    Text(stringResource(R.string.Transpose_by_text), fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -426,7 +425,7 @@ fun OptionsDialog(
                         },
                         modifier = Modifier.padding(top = 8.dp)
                     ) {
-                        Text("📄 Save as PDF")
+                        Text(stringResource(R.string.Save_as_pdf_text))
                     }
                 }
             },

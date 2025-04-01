@@ -11,8 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.repository.AuthRepository
 
 @Composable
@@ -54,8 +56,8 @@ fun ProfileScreen(onLogout: () -> Unit) {
 
     if (showDeleteDialog.value) {
         ConfirmActionDialog(
-            title = "Delete Account",
-            message = "Are you sure you want to delete your account? This action cannot be undone.",
+            title = stringResource(R.string.delete_acc_text),
+            message = stringResource(R.string.Are_you_sure_you_want_to_delete_account),
             onConfirm = {
                 showDeleteDialog.value = false
                 AuthRepository.deleteUserAccount { success, message ->
@@ -73,8 +75,8 @@ fun ProfileScreen(onLogout: () -> Unit) {
 
     if (showLogoutDialog.value) {
         ConfirmActionDialog(
-            title = "Logout",
-            message = "Are you sure you want to logout?",
+            title = stringResource(R.string.logout_text),
+            message = stringResource(R.string.Are_you_sure_you_want_to_logout),
             onConfirm = {
                 showLogoutDialog.value = false
                 AuthRepository.logoutUser()
@@ -129,13 +131,13 @@ fun ProfileCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            InfoRow(label = "Full Name", value = fullName)
+            InfoRow(label = stringResource(R.string.full_name_text), value = fullName)
             Divider(modifier = Modifier.padding(vertical = 4.dp))
-            EditableInfoRow(label = "Username", value = username.value) {
+            EditableInfoRow(label = stringResource(R.string.username_text), value = username.value) {
                 showEditUsernameDialog.value = true
             }
             Divider(modifier = Modifier.padding(vertical = 4.dp))
-            InfoRow(label = "Email", value = email)
+            InfoRow(label = stringResource(R.string.email), value = email)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -150,7 +152,7 @@ fun ProfileCard(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text("Logout")
+                Text(stringResource(R.string.logout_text))
             }
 
             OutlinedButton(
@@ -164,7 +166,7 @@ fun ProfileCard(
                     tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text("Delete Account")
+                Text(stringResource(R.string.delete_acc_text))
             }
 
             deleteMessage.value?.let { message ->
@@ -180,19 +182,19 @@ fun EditUsernameDialog(currentUsername: String?, onConfirm: (String) -> Unit, on
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Edit Username") },
+        title = { Text(stringResource(R.string.edit_username_text)) },
         text = {
             TextField(
                 value = newUsername,
                 onValueChange = { newUsername = it },
-                label = { Text("Username") }
+                label = { Text(stringResource(R.string.username_text)) }
             )
         },
         confirmButton = {
-            Button(onClick = { onConfirm(newUsername) }) { Text("Save") }
+            Button(onClick = { onConfirm(newUsername) }) { Text(stringResource(R.string.save_button_text)) }
         },
         dismissButton = {
-            Button(onClick = onDismiss) { Text("Cancel") }
+            Button(onClick = onDismiss) { Text(stringResource(R.string.cancel_button_text)) }
         }
     )
 }
@@ -247,10 +249,10 @@ fun ConfirmActionDialog(
         title = { Text(title) },
         text = { Text(message) },
         confirmButton = {
-            Button(onClick = onConfirm) { Text("Yes") }
+            Button(onClick = onConfirm) { Text(stringResource(R.string.yes_text)) }
         },
         dismissButton = {
-            Button(onClick = onDismiss) { Text("No, Thanks") }
+            Button(onClick = onDismiss) { Text(stringResource(R.string.no_thanks_text)) }
         }
     )
 }

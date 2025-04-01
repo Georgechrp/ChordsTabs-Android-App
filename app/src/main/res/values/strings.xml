@@ -47,10 +47,50 @@
     <string name="settings_text">Settings</string>
 
 
-    <!--   slide       -->
+    <!--   DetailedSongView       -->
+    <string name="Transpose_by_text">Transpose by</string>
+    <string name="Options_header">Options</string>
+    <string name="Save_as_pdf_text">Save as a PDF</string>
+    <string name="scroll_speed_text">Scroll speed</string>
+
+    <!--   QRUtils.kt       -->
+    <string name="generate_qr_code_text">Share with QR Code</string>
+    <string name="scan_qr_code_text">Scan a QR</string>
 
 
-    <!--       -->
+    <!--   Edit_Profile_Screen    -->
+    <string name="username_text">Username</string>
+
+    <string name="save_changes_text">Save Changes</string>
+
+    <!-- Profile Screen -->
+    <string name="edit_username_text">Edit Username</string>
+    <string name="cancel_button_text">Cancel</string>
+    <string name="save_button_text">Save</string>
+    <string name="yes_text">Yes</string>
+    <string name="no_thanks_text">No, Thanks</string>
+    <string name="delete_acc_text">Delete account</string>
+    <string name="logout_text">Log out</string>
+    <string name="Are_you_sure_you_want_to_logout">Are you sure you want to logout?</string>
+    <string name="Are_you_sure_you_want_to_delete_account">Are you sure you want to delete your account? This action cannot be undone.</string>
+    <string name="full_name_text">Full Name</string>
+
+
+    <!-- PlaylistDetailScreen -->
+    <string name="no_songs_here">There is no songs here.</string>
+
+
+    <!-- Library Screen -->
+    <string name="rename_playlist_text">✏️Rename Playlist</string>
+    <string name="add_song_text2">➕Add Song</string>
+    <string name="delete_playlist_text">🗑️Delete Playlist</string>"
+    <string name="give_a_name_to_playlist">Give a name to playlist:</string>
+    <string name="new_name_text" > New name</string>
+
+
+    <!--  More     -->
+    <string name="X_Text">❌</string>
     <string name="already_exists_the_name_of_playlist">⛔Already exists this name</string>
+
 
 </resources>
