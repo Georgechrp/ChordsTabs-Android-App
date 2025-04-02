@@ -32,13 +32,15 @@ fun MainBottomNavBar(
         Screen.Library
     )
 
-    AnimatedVisibility(visible = !isFullScreen) { // 🔹 Απόκρυψη όταν είναι full-screen
+    AnimatedVisibility(visible = !isFullScreen) { //  Απόκρυψη όταν είναι full-screen
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
-            color = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface
+                .height(58.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), // 👈 ελαφρύ φόντο για contrast
+            shape = RoundedCornerShape(20.dp),
+            shadowElevation = 20.dp, // 👈 Η σκιά
+            tonalElevation = 0.dp
         ) {
             Row(
                 modifier = Modifier

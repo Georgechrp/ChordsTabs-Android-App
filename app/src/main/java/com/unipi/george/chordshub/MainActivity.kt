@@ -1,8 +1,10 @@
 package com.unipi.george.chordshub
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModelProvider
 import com.unipi.george.chordshub.navigation.RootAppEntry
 import com.unipi.george.chordshub.sharedpreferences.AppSettingsPreferences

@@ -14,6 +14,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.unipi.george.chordshub.components.MyAppTopBar
@@ -70,25 +72,29 @@ fun HomeScreen(
     Scaffold(containerColor = Color.Transparent,
         topBar = {
             if (selectedSongId == null) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .offset { IntOffset(x = 0, y = topBarOffset.roundToInt()) }
-                        .background(Color.Transparent)
+                        .zIndex(1f) // Για σιγουριά ότι είναι πάνω απ’ το scrollable περιεχόμενο
                 ) {
                     MyAppTopBar(mainViewModel, onMenuClick = onMenuClick) {
-                        Column {
-                            FilterRow(
-                                selectedFilter = selectedFilter,
-                                onFilterChange = { selectedFilter = it }
-                            )
-                        }
+                        FilterRow(
+                            selectedFilter = selectedFilter,
+                            onFilterChange = { selectedFilter = it }
+                        )
                     }
                 }
             }
         }
+
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues).nestedScroll(nestedScrollConnection).background(Color.Transparent)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(4.dp)
+            .nestedScroll(nestedScrollConnection)
+            .background(Color.Transparent))
+        {
             when {
                 selectedSongId == null && songList.isEmpty() -> LoadingView()
                 selectedSongId == null -> CardsView(songList, homeViewModel, selectedTitle)

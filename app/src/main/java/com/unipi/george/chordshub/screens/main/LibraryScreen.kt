@@ -57,7 +57,10 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
 
                 playlistName = "My Playlist #$nextNumber"
                 showDialog = true
-            }) {
+            },
+                modifier = Modifier.padding(bottom = 76.dp)
+            )
+            {
                 Text("+", style = MaterialTheme.typography.headlineSmall)
             }
         }

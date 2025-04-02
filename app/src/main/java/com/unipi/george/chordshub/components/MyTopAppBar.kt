@@ -47,7 +47,7 @@ fun MyAppTopBar(
                     .background(Color.Transparent)
             ) {
                 CircularImageViewSmall(
-                    imageUrl = profileImageUrl, // ✅ Περνάμε το URL της εικόνας
+                    imageUrl = profileImageUrl,
                     onClick = onMenuClick
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -55,7 +55,12 @@ fun MyAppTopBar(
                     this@Row.content()
                 }
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+        )
+
     )
 }
 
@@ -73,7 +78,7 @@ fun FilterRow(selectedFilter: String, onFilterChange: (String) -> Unit) {
                 isSelected = filter == selectedFilter,
                 onClick = { onFilterChange(filter) }
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            //Spacer(modifier = Modifier.width(2.dp))
         }
     }
 }

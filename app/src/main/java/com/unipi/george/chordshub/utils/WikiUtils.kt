@@ -3,8 +3,8 @@ package com.unipi.george.chordshub.utils
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.net.URL
+import org.json.JSONObject  //για να διαβάσει τα JSON αποτελέσματα.
+import java.net.URL    //για να κατεβασει το περιεχομενο της σελιδας
 import java.net.URLEncoder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import kotlinx.coroutines.launch
-import java.net.HttpURLConnection
+import java.net.HttpURLConnection // για το HEAD request.
 
 
 @Composable
@@ -26,7 +26,7 @@ fun ArtistInfo(artistName: String) {
 
     LaunchedEffect(artistName) {
         coroutineScope.launch {
-            val bestMatch = getWikipediaPageTitle(artistName) // ✅ Επιστρέφει και το lang τώρα
+            val bestMatch = getWikipediaPageTitle(artistName)
             if (bestMatch != null) {
                 val (bestMatchTitle, lang) = bestMatch
                 val data = bestMatchTitle?.let { fetchWikipediaData(it, lang) }
@@ -60,7 +60,7 @@ fun ArtistInfo(artistName: String) {
     }
 }
 
-// ✅ Παίρνει την εικόνα και την περίληψη από τη Wikipedia με βάση τη γλώσσα
+// Παίρνει την εικόνα και την περίληψη από τη Wikipedia με βάση τη γλώσσα
 suspend fun fetchWikipediaData(pageTitle: String, lang: String): Pair<String?, String?>? {
     return withContext(Dispatchers.IO) {
         try {
@@ -79,7 +79,7 @@ suspend fun fetchWikipediaData(pageTitle: String, lang: String): Pair<String?, S
     }
 }
 
-// ✅ Ελέγχει αν μια Wikipedia σελίδα υπάρχει σε συγκεκριμένη γλώσσα
+// Ελέγχει αν μια Wikipedia σελίδα υπάρχει σε συγκεκριμένη γλώσσα
 suspend fun checkWikipediaPageExists(title: String, lang: String): Boolean {
     return withContext(Dispatchers.IO) {
         try {
@@ -98,13 +98,13 @@ suspend fun getWikipediaPageTitle(artistName: String): Pair<String?, String>? {
     return withContext(Dispatchers.IO) {
         val formattedName = artistName.replace(" ", "_")
 
-        // 🔹 Επιλογή γλώσσας (Αν το όνομα είναι ελληνικό, ψάχνουμε στην ελληνική Wikipedia)
+        // Επιλογή γλώσσας (Αν το όνομα είναι ελληνικό, ψάχνουμε στην ελληνική Wikipedia)
         val isGreek = artistName.any { it in 'Α'..'Ω' || it in 'α'..'ω' }
         val lang = if (isGreek) "el" else "en"
 
         Log.d("WikipediaSearch", "Ψάχνουμε για: $formattedName στη γλώσσα: $lang")
 
-        // 🔹 1. Δοκιμάζουμε πρώτα με "(band)", "(musician)", "(singer)"
+        // 1. Δοκιμάζουμε πρώτα με "(band)", "(musician)", "(singer)"
         val possibleVariants = listOf("${formattedName}_(band)", "${formattedName}_(musician)", "${formattedName}_(singer)")
         for (variant in possibleVariants) {
             if (checkWikipediaPageExists(variant, lang)) {
@@ -113,27 +113,27 @@ suspend fun getWikipediaPageTitle(artistName: String): Pair<String?, String>? {
             }
         }
 
-        // 🔹 2. Αν δεν βρήκε με τις παρενθέσεις, δοκιμάζουμε το απλό όνομα
+        // 2. Αν δεν βρήκε με τις παρενθέσεις, δοκιμάζουμε το απλό όνομα
         if (checkWikipediaPageExists(formattedName, lang)) {
             Log.d("WikipediaSearch", "Βρέθηκε απλό όνομα: $formattedName")
             return@withContext Pair(formattedName, lang)
         }
 
-        // 🔹 3. Αν δεν βρούμε τίποτα, κάνουμε αναζήτηση στην Wikipedia
+        // 3. Αν δεν βρούμε τίποτα, κάνουμε αναζήτηση στην Wikipedia
         val searchResult = searchWikipediaPage(artistName, lang)
         if (searchResult != null) {
             Log.d("WikipediaSearch", "Αποτέλεσμα αναζήτησης: ${searchResult.first}")
             return@withContext searchResult
         }
 
-        // 🔹 4. Τελευταία λύση: Επιστρέφουμε το default formatted όνομα
+        // 4. Τελευταία λύση: Επιστρέφουμε το default formatted όνομα
         Log.w("WikipediaSearch", "Δεν βρέθηκε τίποτα, επιστρέφουμε default: $formattedName")
         return@withContext Pair(formattedName, lang)
     }
 }
 
 
-// ✅ Αναζητά το πιο σχετικό αποτέλεσμα στη Wikipedia σε Αγγλικά ή Ελληνικά
+// Αναζητά το πιο σχετικό αποτέλεσμα στη Wikipedia σε Αγγλικά ή Ελληνικά
 suspend fun searchWikipediaPage(artistName: String, lang: String): Pair<String?, String>? {
     return withContext(Dispatchers.IO) {
         try {

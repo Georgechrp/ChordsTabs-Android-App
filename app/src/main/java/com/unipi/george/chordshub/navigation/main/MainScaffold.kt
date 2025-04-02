@@ -15,6 +15,9 @@ import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 
 @Composable
 fun MainScaffold(
@@ -38,22 +41,35 @@ fun MainScaffold(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
-        bottomBar = {
-            val currentRoute = navBackStackEntry?.destination?.route
-            if (!isFullScreen && currentRoute !in bottomBarExcludedScreens) {
-                MainBottomNavBar(navController, isFullScreen)
-            }
-        }
+        containerColor = Color.Transparent // Κανένα φόντο
     ) { innerPadding ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Κύριο περιεχόμενο
             MainNavGraph(
                 navController = navController,
                 mainViewModel = mainViewModel,
                 sessionViewModel = sessionViewModel
             )
+
+            // 👇 BottomNavBar κάτω δεξιά, με zIndex
+            val currentRoute = navBackStackEntry?.destination?.route
+            if (!isFullScreen && currentRoute !in bottomBarExcludedScreens) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .align(Alignment.BottomCenter) // 👈 Το βάζει στο κάτω μέρος
+                        .zIndex(1f) // Να πετάει πάνω από το υπόλοιπο
+                ) {
+                    MainBottomNavBar(navController = navController, isFullScreen = isFullScreen)
+                }
+            }
         }
+
     }
+
 }
