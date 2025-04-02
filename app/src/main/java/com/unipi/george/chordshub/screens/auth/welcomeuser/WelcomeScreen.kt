@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens.seconds
+package com.unipi.george.chordshub.screens.auth.welcomeuser
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
-import com.unipi.george.chordshub.navigation.Screen
+import com.unipi.george.chordshub.navigation.AppScreens
 
 @Composable
 fun WelcomeScreen(
@@ -20,12 +20,12 @@ fun WelcomeScreen(
     LaunchedEffect(Unit) {
         delay(2000L) // 2 δευτερόλεπτα splash
         if (sessionViewModel.isUserLoggedInState.value) {
-            navController.navigate(Screen.Main.route) {
-                popUpTo(Screen.Welcome.route) { inclusive = true }
+            navController.navigate(AppScreens.Main.route) {
+                popUpTo(AppScreens.Welcome.route) { inclusive = true }
             }
         } else {
-            navController.navigate(Screen.Auth.route) {
-                popUpTo(Screen.Welcome.route) { inclusive = true }
+            navController.navigate(AppScreens.Auth.route) {
+                popUpTo(AppScreens.Welcome.route) { inclusive = true }
             }
         }
     }

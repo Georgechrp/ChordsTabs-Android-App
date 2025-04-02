@@ -13,13 +13,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Search
-import com.unipi.george.chordshub.navigation.Screen
+import com.unipi.george.chordshub.navigation.AppScreens
 
 @Composable
 fun MainBottomNavBar(
@@ -27,9 +26,9 @@ fun MainBottomNavBar(
     isFullScreen: Boolean
 ) {
     val items = listOf(
-        Screen.Home,
-        Screen.Search,
-        Screen.Library
+        AppScreens.Home,
+        AppScreens.Search,
+        AppScreens.Library
     )
 
     AnimatedVisibility(visible = !isFullScreen) { //  Απόκρυψη όταν είναι full-screen
@@ -68,9 +67,9 @@ fun MainBottomNavBar(
                     ) {
                         Icon(
                             imageVector = when (screen) {
-                                is Screen.Home -> Icons.Filled.Home
-                                is Screen.Search -> Icons.Filled.Search
-                                is Screen.Library -> Icons.Filled.LibraryMusic
+                                is AppScreens.Home -> Icons.Filled.Home
+                                is AppScreens.Search -> Icons.Filled.Search
+                                is AppScreens.Library -> Icons.Filled.LibraryMusic
                                 else -> Icons.Filled.Home
                             },
                             contentDescription = screen.route,

@@ -1,11 +1,10 @@
-package com.unipi.george.chordshub.navigation
+package com.unipi.george.chordshub.navigation.main
 
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.unipi.george.chordshub.navigation.auth.AuthFlowNavGraph
-import com.unipi.george.chordshub.navigation.main.MainScaffold
 import com.unipi.george.chordshub.sharedpreferences.AppSettingsPreferences
 import com.unipi.george.chordshub.ui.theme.ChordsHubTheme
 import com.unipi.george.chordshub.utils.ObserveUserSession

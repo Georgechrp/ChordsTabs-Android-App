@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens.seconds
+package com.unipi.george.chordshub.screens.slidemenu.viewprofile
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*

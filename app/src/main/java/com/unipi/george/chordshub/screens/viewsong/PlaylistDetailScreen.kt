@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens.seconds
+package com.unipi.george.chordshub.screens.viewsong
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize

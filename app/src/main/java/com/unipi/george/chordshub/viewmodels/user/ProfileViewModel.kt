@@ -1,17 +1,6 @@
 package com.unipi.george.chordshub.viewmodels.user
 
 import android.net.Uri
-import androidx.compose.material3.SnackbarHostState
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.repository.AuthRepository
-import com.unipi.george.chordshub.screens.seconds.getProfileImageUrl
-import com.unipi.george.chordshub.screens.seconds.uploadImageToFirebase
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 /*
 class ProfileViewModel(private val userId: String) : ViewModel() {

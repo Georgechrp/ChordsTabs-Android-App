@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens.seconds
+package com.unipi.george.chordshub.screens.slidemenu.viewprofile
 
 import  androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape

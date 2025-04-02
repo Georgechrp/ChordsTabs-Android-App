@@ -20,7 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.unipi.george.chordshub.components.MyAppTopBar
 import com.unipi.george.chordshub.components.FilterRow
-import com.unipi.george.chordshub.screens.seconds.DetailedSongView
+import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel

@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.navigation.Screen
+import com.unipi.george.chordshub.navigation.AppScreens
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
 
@@ -64,7 +64,7 @@ fun LoginScreen(navController: NavController, onLoginSuccess: () -> Unit) {
             maxLines = 1
         )
         TextButton(onClick = {
-            navController.navigate(Screen.ForgotPassword.route)
+            navController.navigate(AppScreens.ForgotPassword.route)
         }) {
             Text(stringResource(R.string.resetPassword_text))
         }
@@ -77,7 +77,7 @@ fun LoginScreen(navController: NavController, onLoginSuccess: () -> Unit) {
 
             AuthRepository.signInUser(email.value, password.value) { success, errorMessage ->
                 if (success) {
-                    Log.d("LoginScreen", "Login successful. Navigating to Home: ${Screen.Home.route}")
+                    Log.d("LoginScreen", "Login successful. Navigating to Home: ${AppScreens.Home.route}")
                     onLoginSuccess()
                     isUserLoggedInState.value = true
                 } else {
@@ -89,7 +89,7 @@ fun LoginScreen(navController: NavController, onLoginSuccess: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(8.dp))
         TextButton(onClick = {
-            navController.navigate(Screen.SignUp.route)
+            navController.navigate(AppScreens.SignUp.route)
         }) {
             Text(stringResource(R.string.dont_have_account))
         }

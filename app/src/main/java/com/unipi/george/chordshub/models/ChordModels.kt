@@ -16,3 +16,8 @@ data class Chord(
     val positions: String,
     val fingers: String
 )
+
+data class GuitarChord(
+    val name: String,
+    val fingerPositions: List<Int> // 0 για ανοιχτές, -1 για muted, αριθμοί για fret positions
+)

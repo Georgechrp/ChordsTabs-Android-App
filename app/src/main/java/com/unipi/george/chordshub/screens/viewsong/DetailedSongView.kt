@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens.seconds
+package com.unipi.george.chordshub.screens.viewsong
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -76,7 +76,7 @@ fun DetailedSongView(
     onBack: () -> Unit,
     repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance()),
     navController: NavController,
-    mainViewModel: MainViewModel,
+    mainViewModel: MainViewModel?,
     homeViewModel: HomeViewModel,
     userViewModel: UserViewModel
 ) {

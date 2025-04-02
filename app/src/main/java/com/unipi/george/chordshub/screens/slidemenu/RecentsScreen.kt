@@ -15,26 +15,44 @@ import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.components.LoadingView
 import com.unipi.george.chordshub.repository.AuthRepository
+import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
+import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecentsScreen(
     navController: NavController,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    homeViewModel: HomeViewModel
 ) {
     val recentSongs by userViewModel.recentSongs
     val userId = AuthRepository.getUserId()
     var isLoading by remember { mutableStateOf(true) }
+    val selectedSongId by homeViewModel.selectedSongId.collectAsState()
 
     // Fetch recent songs κατά την είσοδο στην οθόνη
     LaunchedEffect(userId) {
         if (userId != null) {
             userViewModel.fetchRecentSongs(userId)
         }
-        isLoading = false // Σταματάμε τη φόρτωση αφού γίνει το fetch
+        isLoading = false
+    }
+
+    // Αν έχει επιλεγεί τραγούδι, δείχνουμε την λεπτομέρεια του
+    if (selectedSongId != null) {
+        DetailedSongView(
+            songId = selectedSongId!!,
+            isFullScreenState = false,
+            onBack = {
+                homeViewModel.clearSelectedSong()
+            },
+            navController = navController,
+            mainViewModel = null, // Βάλε αν το χρειάζεσαι
+            homeViewModel = homeViewModel,
+            userViewModel = userViewModel
+        )
+        return
     }
 
     Scaffold(
@@ -65,16 +83,13 @@ fun RecentsScreen(
                 }
 
                 else -> {
-                    // Αν υπάρχουν τραγούδια, τα εμφανίζουμε
                     recentSongs.forEach { song ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp)
                                 .clickable {
-                                    // 🔹 Πλοήγηση στη DetailedSongView με σωστή διαδρομή
-                                    val encodedSong = java.net.URLEncoder.encode(song, "UTF-8")
-                                    navController.navigate("detailedSongView/${URLEncoder.encode(song, StandardCharsets.UTF_8.toString())}")
+                                    homeViewModel.selectSong(song)
                                 },
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.navigation.Screen
+import com.unipi.george.chordshub.navigation.AppScreens
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.saveUserToFirestore
 
@@ -145,7 +145,7 @@ fun SignUpActions(
                     saveUserToFirestore(uid, fullName.value, email.value, "user") { firestoreSuccess ->
                         if (firestoreSuccess) {
                             Toast.makeText(context, context.getString(R.string.account_created_successfully), Toast.LENGTH_SHORT).show()
-                            navController.navigate(Screen.Login.route)
+                            navController.navigate(AppScreens.Login.route)
                         } else {
                             Toast.makeText(context, context.getString(R.string.failed_to_save_user_role), Toast.LENGTH_SHORT).show()
                         }
@@ -161,8 +161,8 @@ fun SignUpActions(
     Spacer(modifier = Modifier.height(8.dp))
 
     TextButton(onClick = {
-        Log.d("SignUpScreen", "Navigating to Login: ${Screen.Login.route}")
-        navController.navigate(Screen.Login.route)
+        Log.d("SignUpScreen", "Navigating to Login: ${AppScreens.Login.route}")
+        navController.navigate(AppScreens.Login.route)
     }) {
         Text(stringResource(R.string.already_have_account))
     }

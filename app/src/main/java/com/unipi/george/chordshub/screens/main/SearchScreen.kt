@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.screens.seconds.DetailedSongView
+import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
 import com.unipi.george.chordshub.utils.QRCodeScannerButton
 import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
 import com.unipi.george.chordshub.components.MyAppTopBar

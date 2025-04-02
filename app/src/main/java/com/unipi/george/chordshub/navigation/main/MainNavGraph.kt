@@ -5,23 +5,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.navigation.Screen
-import com.unipi.george.chordshub.navigation.auth.AuthFlowNavGraph
+import com.unipi.george.chordshub.navigation.AppScreens
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.fullNameState
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
 import com.unipi.george.chordshub.screens.main.*
-import com.unipi.george.chordshub.screens.seconds.ArtistScreen
-import com.unipi.george.chordshub.screens.seconds.DetailedSongView
-import com.unipi.george.chordshub.screens.seconds.EditProfileScreen
-import com.unipi.george.chordshub.screens.seconds.PlaylistDetailScreen
-import com.unipi.george.chordshub.screens.seconds.ProfileMenu
-import com.unipi.george.chordshub.screens.seconds.ProfileScreen
-import com.unipi.george.chordshub.screens.seconds.WelcomeScreen
+import com.unipi.george.chordshub.screens.viewsong.ArtistScreen
+import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
+import com.unipi.george.chordshub.screens.slidemenu.viewprofile.EditProfileScreen
+import com.unipi.george.chordshub.screens.viewsong.PlaylistDetailScreen
+import com.unipi.george.chordshub.screens.slidemenu.ProfileMenu
+import com.unipi.george.chordshub.screens.slidemenu.viewprofile.ProfileScreen
+import com.unipi.george.chordshub.screens.auth.welcomeuser.WelcomeScreen
 import com.unipi.george.chordshub.screens.slidemenu.RecentsScreen
 import com.unipi.george.chordshub.screens.slidemenu.SettingsScreen
 import com.unipi.george.chordshub.screens.slidemenu.UploadScreen
@@ -32,9 +33,6 @@ import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
 import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
-
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -60,9 +58,9 @@ fun MainNavGraph(
     }
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = AppScreens.Home.route
     ) {
-        composable(Screen.Home.route) {
+        composable(AppScreens.Home.route) {
             HomeScreen(
                 homeViewModel = homeViewModel,
                 mainViewModel = mainViewModel,
@@ -73,7 +71,7 @@ fun MainNavGraph(
             )
         }
 
-        composable(Screen.Search.route) {
+        composable(AppScreens.Search.route) {
             SearchScreen(
                 viewModel = searchViewModel,
                 mainViewModel = mainViewModel,
@@ -85,14 +83,14 @@ fun MainNavGraph(
                 onFullScreenChange = { homeViewModel.setFullScreen(it) }
             )
         }
-        composable(Screen.Upload.route) {
+        composable(AppScreens.Upload.route) {
             UploadScreen(
                 navController = navController,
                 painter = painter,
                 onMenuClick = { mainViewModel.setMenuOpen(true) }
             )
         }
-        composable(Screen.Library.route) {
+        composable(AppScreens.Library.route) {
             LibraryScreen(
                 navController = navController,
                 painter = painter,
@@ -100,7 +98,7 @@ fun MainNavGraph(
                 onMenuClick = { mainViewModel.setMenuOpen(true) }
             )
         }
-        composable(Screen.Profile.route) {
+        composable(AppScreens.Profile.route) {
             ProfileScreen(
                 onLogout = {
                     AuthRepository.logoutUser()
@@ -120,34 +118,38 @@ fun MainNavGraph(
             EditProfileScreen(navController, userId, onDismiss = { navController.popBackStack() })
         }
 
-        composable(Screen.Settings.route) {
+        composable(AppScreens.Settings.route) {
             SettingsScreen(navController = navController, settingsViewModel = settingsViewModel)
         }
 
-        composable(Screen.Recents.route) {
-            RecentsScreen(navController = navController, userViewModel = userViewModel)
+        composable(AppScreens.Recents.route) {
+            RecentsScreen(navController = navController, userViewModel = userViewModel, homeViewModel = homeViewModel)
         }
 
         composable("recentsScreen") {
-            RecentsScreen(navController, userViewModel)
+            RecentsScreen(navController, userViewModel, homeViewModel)
         }
 
-        composable("detailedSongView/{songTitle}") { backStackEntry ->
-            val songTitle = backStackEntry.arguments?.getString("songTitle")?.let {
-                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
-            } ?: "Untitled"
+        composable(
+            route = "detailedSongView/{songTitle}",
+            arguments = listOf(navArgument("songTitle") {
+                type = NavType.StringType
+            })
+        ) { backStackEntry ->
+            val songTitle = backStackEntry.arguments?.getString("songTitle")
 
             DetailedSongView(
-                songId = songTitle,
-                isFullScreenState = false,
+                songId = songTitle ?: return@composable,
+                isFullScreenState = false, // ή ό,τι έχεις default
                 onBack = { navController.popBackStack() },
                 navController = navController,
-                mainViewModel = viewModel(),
-                homeViewModel = viewModel(),
-                userViewModel = viewModel()
+                mainViewModel = mainViewModel,
+                homeViewModel = homeViewModel,
+                userViewModel = userViewModel
             )
         }
-        composable(Screen.Welcome.route) {
+
+        composable(AppScreens.Welcome.route) {
             WelcomeScreen(navController, sessionViewModel)
         }
         composable("playlist_detail/{playlistName}") { backStackEntry ->

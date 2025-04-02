@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens.seconds
+package com.unipi.george.chordshub.screens.slidemenu
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.navigation.Screen
+import com.unipi.george.chordshub.navigation.AppScreens
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 import androidx.compose.material.icons.Icons
@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.unipi.george.chordshub.screens.slidemenu.viewprofile.getProfileImageUrl
 import com.unipi.george.chordshub.utils.updateUserProfileImage
 import com.unipi.george.chordshub.utils.uploadImageToCloudinary
 import kotlinx.coroutines.launch
@@ -141,9 +142,9 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
             ) {
                 Image(
                     painter = if (selectedImage != null) {
-                        rememberAsyncImagePainter(selectedImage) // ✅ Προβάλλει την τοπική εικόνα
+                        rememberAsyncImagePainter(selectedImage)
                     } else if (profileImageUrl != null) {
-                        rememberAsyncImagePainter(profileImageUrl) // ✅ Ανέβηκε στο Cloudinary, εμφάνιση από Firestore
+                        rememberAsyncImagePainter(profileImageUrl)
                     } else {
                         painterResource(id = R.drawable.edit_user_image)
                     },
@@ -160,21 +161,21 @@ fun ProfileMenuContent(mainViewModel: MainViewModel, navController: NavControlle
             MenuItem(
                 icon = Icons.Filled.AddCircleOutline,
                 text = stringResource(R.string.add_song_text),
-                route = Screen.Upload.route,
+                route = AppScreens.Upload.route,
                 mainViewModel = mainViewModel,
                 navController = navController
             )
             MenuItem(
                 icon = Icons.Filled.History,
                 text = stringResource(R.string.recent_text),
-                route = Screen.Recents.route,
+                route = AppScreens.Recents.route,
                 mainViewModel = mainViewModel,
                 navController = navController
             )
             MenuItem(
                 icon = Icons.Filled.Settings,
                 text = stringResource(R.string.settings_text),
-                route = Screen.Settings.route,
+                route = AppScreens.Settings.route,
                 mainViewModel = mainViewModel,
                 navController = navController
             )
@@ -201,7 +202,7 @@ fun UserProfileSection(
         TextButton(
             onClick = {
                 mainViewModel.setMenuOpen(false)
-                navController.navigate(Screen.Profile.route)
+                navController.navigate(AppScreens.Profile.route)
             },
             contentPadding = PaddingValues(0.dp),
             modifier = Modifier.height(20.dp)
