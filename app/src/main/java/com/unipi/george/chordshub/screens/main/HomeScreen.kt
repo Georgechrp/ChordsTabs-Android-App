@@ -14,11 +14,13 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.components.MyAppTopBar
 import com.unipi.george.chordshub.components.FilterRow
 import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
@@ -111,7 +113,7 @@ fun HomeScreen(
     ) { paddingValues ->
         Box(modifier = Modifier
             .fillMaxSize()
-            .padding(4.dp)
+            .padding(2.dp)
             .nestedScroll(nestedScrollConnection)
             .background(Color.Transparent))
         {
@@ -119,7 +121,7 @@ fun HomeScreen(
                 selectedSongId == null && songList.isEmpty() && showNoResults -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "Unfortunately, there are no results for this filter at the moment.",
+                            text = stringResource(R.string.unfortunately_text),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onBackground
                         )

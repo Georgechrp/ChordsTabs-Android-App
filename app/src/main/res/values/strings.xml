@@ -93,4 +93,8 @@
     <string name="already_exists_the_name_of_playlist">⛔Already exists this name</string>
 
 
+    <!--   HomeScreen    -->
+    <string name="unfortunately_text">Unfortunately, there are no results for this filter at the moment.</string>
+
+
 </resources>

@@ -72,4 +72,7 @@
     <!-- More -->
     <string name="X_Text">❌</string>
     <string name="already_exists_the_name_of_playlist">⛔ Υπάρχει ήδη λίστα με αυτό το όνομα</string>
+
+    <!-- HomeScreene -->
+    <string name="unfortunately_text">Δυστυχώς, δεν υπάρχουν αποτελέσματα για αυτο το φίλτρο αυτη την στιγμή</string>
 </resources>
