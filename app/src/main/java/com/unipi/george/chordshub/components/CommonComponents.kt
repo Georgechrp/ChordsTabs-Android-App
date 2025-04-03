@@ -33,7 +33,6 @@ fun AppText(text: String, settingsViewModel: SettingsViewModel, modifier: Modifi
 
 
 
-
 /*
 fun addDataForFurElise() {
     val repository = FirestoreRepository(FirebaseFirestore.getInstance())

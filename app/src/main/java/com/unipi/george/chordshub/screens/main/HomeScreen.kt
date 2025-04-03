@@ -45,6 +45,10 @@ fun HomeScreen(
     val isFullScreenState by homeViewModel.isFullScreen.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     var topBarOffset by rememberSaveable { mutableFloatStateOf(0f) } // Κρατάμε την τρέχουσα θέση του top br
+    val profileImage by mainViewModel.profileImageUrl.collectAsState()
+    val genreFilters = listOf("All", "Pop", "Hip-Hop", "R&B", "Reggae")
+    val moodFilters = listOf("Happy", "Sad", "Chill", "Energetic")
+
 
     // Nested Scroll για σωστό collapsing behavior
     val nestedScrollConnection = remember {
@@ -78,10 +82,14 @@ fun HomeScreen(
                         .offset { IntOffset(x = 0, y = topBarOffset.roundToInt()) }
                         .zIndex(1f) // Για σιγουριά ότι είναι πάνω απ’ το scrollable περιεχόμενο
                 ) {
-                    MyAppTopBar(mainViewModel, onMenuClick = onMenuClick) {
+                    MyAppTopBar(
+                        imageUrl = profileImage,
+                        onMenuClick = onMenuClick
+                    ) {
                         FilterRow(
                             selectedFilter = selectedFilter,
-                            onFilterChange = { selectedFilter = it }
+                            onFilterChange = { selectedFilter = it },
+                            filters = genreFilters + moodFilters
                         )
                     }
                 }

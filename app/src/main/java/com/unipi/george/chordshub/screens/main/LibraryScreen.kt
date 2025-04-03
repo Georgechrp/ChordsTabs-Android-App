@@ -35,15 +35,18 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
 
     var showRenameDialog by remember { mutableStateOf(false) }
     var newPlaylistName by remember { mutableStateOf("") }
+    val profileImage by mainViewModel.profileImageUrl.collectAsState()
 
     Scaffold(
         topBar = {
             MyAppTopBar(
-                mainViewModel = mainViewModel,
+                imageUrl = profileImage,
                 onMenuClick = onMenuClick
             ) {
                 Text("Βιβλιοθήκη", style = MaterialTheme.typography.headlineSmall)
             }
+
+
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
@@ -105,23 +108,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                                 }
                             }
 
-                            /*Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                TextButton(onClick = {
-                                    selectedPlaylist = playlist
-                                    showAddSongDialog = true
-                                }) {
-                                    Text("➕ Προσθήκη τραγουδιού")
-                                }
 
-                                TextButton(onClick = {
-                                    viewModel.deletePlaylist(playlist) {}
-                                }) {
-                                    Text("🗑️")
-                                }
-                            }*/
                         }
                     }
                 }

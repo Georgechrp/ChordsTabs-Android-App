@@ -45,6 +45,7 @@ fun SearchScreen(
     val randomSongs by viewModel.randomSongs.collectAsState()
     val isMenuOpen by mainViewModel.isMenuOpen
     val userViewModel: UserViewModel = viewModel()
+    val profileImage by mainViewModel.profileImageUrl.collectAsState()
 
     LaunchedEffect(searchText.text) {
         if (searchText.text.isEmpty()) {
@@ -69,7 +70,11 @@ fun SearchScreen(
     Scaffold(
         topBar = {
             if (selectedSongId == null) {
-                SearchScreenTopBar(painter, onMenuClick)
+                SearchScreenTopBar(
+                    profileImage = profileImage,
+                    onMenuClick = onMenuClick
+                )
+
             }
         }
     ) { paddingValues ->
@@ -106,9 +111,9 @@ fun SearchScreen(
 }
 
 @Composable
-fun SearchScreenTopBar(painter: Painter, onMenuClick: () -> Unit) {
+fun SearchScreenTopBar(profileImage: String?, onMenuClick: () -> Unit) {
     MyAppTopBar(
-        mainViewModel = MainViewModel(),
+        imageUrl = profileImage,
         onMenuClick = onMenuClick
     ) {
         Text(

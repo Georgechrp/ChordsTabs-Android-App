@@ -12,8 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,17 +25,14 @@ import coil.compose.rememberAsyncImagePainter
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.ui.theme.checkedFilter
 import com.unipi.george.chordshub.ui.theme.filterColor
-import com.unipi.george.chordshub.viewmodels.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyAppTopBar(
-    mainViewModel: MainViewModel,
+    imageUrl: String?,
     onMenuClick: () -> Unit,
     content: @Composable RowScope.() -> Unit
 ) {
-    val profileImageUrl by mainViewModel.profileImageUrl.collectAsState()
-
     TopAppBar(
         title = {
             Row(
@@ -47,7 +42,7 @@ fun MyAppTopBar(
                     .background(Color.Transparent)
             ) {
                 CircularImageViewSmall(
-                    imageUrl = profileImageUrl,
+                    imageUrl = imageUrl,
                     onClick = onMenuClick
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -60,38 +55,23 @@ fun MyAppTopBar(
             containerColor = Color.Transparent,
             scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
         )
-
     )
 }
 
 
-
 @Composable
-fun FilterRow(selectedFilter: String, onFilterChange: (String) -> Unit) {
-    val scrollState = rememberScrollState()
-    val filters = listOf("All", "Jazz", "Metal", "Classical", "Britpop", "Pop", "Rock")
-
-    Row(modifier = Modifier.horizontalScroll(scrollState)) {
-        filters.forEach { filter ->
-            FilterButton(
-                text = filter,
-                isSelected = filter == selectedFilter,
-                onClick = { onFilterChange(filter) }
-            )
-            //Spacer(modifier = Modifier.width(2.dp))
-        }
-    }
-}
-
-
-@Composable
-fun FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
+fun FilterButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    selectedColor: Color = checkedFilter,
+    defaultColor: Color = filterColor
+) {
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(15.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) checkedFilter
-            else filterColor
+            containerColor = if (isSelected) selectedColor else defaultColor
         ),
         modifier = Modifier
             .height(30.dp)
@@ -106,9 +86,30 @@ fun FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun FilterRow(
+    selectedFilter: String,
+    onFilterChange: (String) -> Unit,
+    filters: List<String> = listOf("All", "Jazz", "Metal", "Classical", "Britpop", "Pop", "Rock")
+) {
+    val scrollState = rememberScrollState()
+
+    Row(modifier = Modifier.horizontalScroll(scrollState)) {
+        filters.forEach { filter ->
+            FilterButton(
+                text = filter,
+                isSelected = filter == selectedFilter,
+                onClick = { onFilterChange(filter) }
+            )
+        }
+    }
+}
 
 @Composable
-fun CircularImageViewSmall(imageUrl: String?, onClick: () -> Unit) {
+fun CircularImageViewSmall(
+    imageUrl: String?,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .size(30.dp)
