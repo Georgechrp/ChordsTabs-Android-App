@@ -1,6 +1,6 @@
-package com.unipi.george.chordshub.models
+package com.unipi.george.chordshub.models.song
 
-data class SongData(
+data class Song(
     val title: String?,
     val artist: String?,
     val key: String?,
@@ -8,6 +8,6 @@ data class SongData(
     val genres: List<String>? = null,
     val createdAt: String?,
     val creatorId: String?,
-    val lyrics: List<SongLine>?,
+    val lyrics: List<SongLine>,
 )
 

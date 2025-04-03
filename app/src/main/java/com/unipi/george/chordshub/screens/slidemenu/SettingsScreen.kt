@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
-import com.unipi.george.chordshub.components.AppText
+import com.unipi.george.chordshub.components.SettingsHeads
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +59,7 @@ fun SettingsTopBar(navController: NavController) {
 @Composable
 fun DarkModeToggle(settingsViewModel: SettingsViewModel) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        AppText("Dark Mode", settingsViewModel)
+        SettingsHeads("Dark Mode", settingsViewModel)
         Spacer(modifier = Modifier.weight(1f))
         Switch(
             checked = settingsViewModel.darkMode.value,
@@ -72,7 +72,7 @@ fun DarkModeToggle(settingsViewModel: SettingsViewModel) {
 
 @Composable
 fun LanguageSelection(settingsViewModel: SettingsViewModel) {
-    AppText("Γλώσσα", settingsViewModel)
+    SettingsHeads("Γλώσσα", settingsViewModel)
     Row {
         Button(
             onClick = { settingsViewModel.changeLanguage("greek") },
@@ -97,7 +97,7 @@ fun FontSizeSelection(settingsViewModel: SettingsViewModel) {
     var tempFontSize by remember { mutableStateOf(settingsViewModel.fontSize.value) }
     var sampleText by remember { mutableStateOf("Δοκιμή Γραμματοσειράς") }
 
-    AppText("Μέγεθος Γραμματοσειράς: ${tempFontSize.toInt()}sp", settingsViewModel)
+    SettingsHeads("Μέγεθος Γραμματοσειράς: ${tempFontSize.toInt()}sp", settingsViewModel)
     Row(verticalAlignment = Alignment.CenterVertically) {
         Slider(
             value = tempFontSize,

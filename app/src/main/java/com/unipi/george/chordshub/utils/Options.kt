@@ -9,7 +9,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
-import com.unipi.george.chordshub.models.SongLine
+import com.unipi.george.chordshub.models.song.SongLine
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream

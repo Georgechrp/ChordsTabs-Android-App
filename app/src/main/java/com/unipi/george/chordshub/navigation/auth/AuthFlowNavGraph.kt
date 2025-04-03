@@ -11,6 +11,10 @@ import com.unipi.george.chordshub.screens.auth.SignUpScreen
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.screens.auth.ForgotPasswordScreen
 
+/*
+*   Navigates between the login, sign up & forgot password screens
+ */
+
 @Composable
 fun AuthFlowNavGraph(
     navController: NavHostController,

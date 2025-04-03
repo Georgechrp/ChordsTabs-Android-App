@@ -1,6 +1,5 @@
 package com.unipi.george.chordshub.models
 
-
 data class User(
     val uid: String = "",
     val fullName: String = "",

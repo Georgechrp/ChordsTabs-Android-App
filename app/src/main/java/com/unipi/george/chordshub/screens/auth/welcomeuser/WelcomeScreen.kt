@@ -11,6 +11,10 @@ import kotlinx.coroutines.delay
 import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.navigation.AppScreens
 
+ /*
+*   needs work
+ */
+
 @Composable
 fun WelcomeScreen(
     navController: NavController,

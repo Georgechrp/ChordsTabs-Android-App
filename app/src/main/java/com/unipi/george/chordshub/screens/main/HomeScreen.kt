@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -27,6 +28,7 @@ import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 import kotlin.math.roundToInt
 import com.unipi.george.chordshub.components.CardsView
 import com.unipi.george.chordshub.components.LoadingView
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
@@ -48,6 +50,7 @@ fun HomeScreen(
     val profileImage by mainViewModel.profileImageUrl.collectAsState()
     val genreFilters = listOf("All", "Pop", "Hip-Hop", "R&B", "Reggae")
     val moodFilters = listOf("Happy", "Sad", "Chill", "Energetic")
+    var showNoResults by remember { mutableStateOf(false) }
 
 
     // Nested Scroll για σωστό collapsing behavior
@@ -67,6 +70,15 @@ fun HomeScreen(
 
     LaunchedEffect(selectedFilter) {
         homeViewModel.fetchFilteredSongs(selectedFilter)
+    }
+    LaunchedEffect(songList, selectedFilter) {
+        showNoResults = false
+        if (songList.isEmpty()) {
+            delay(5000)
+            if (songList.isEmpty()) {
+                showNoResults = true
+            }
+        }
     }
 
     BackHandler(enabled = isMenuOpen) {
@@ -104,6 +116,15 @@ fun HomeScreen(
             .background(Color.Transparent))
         {
             when {
+                selectedSongId == null && songList.isEmpty() && showNoResults -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "Unfortunately, there are no results for this filter at the moment.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
                 selectedSongId == null && songList.isEmpty() -> LoadingView()
                 selectedSongId == null -> CardsView(songList, homeViewModel, selectedTitle)
                 else -> DetailedSongView(
@@ -119,6 +140,7 @@ fun HomeScreen(
                     userViewModel = userViewModel
                 )
             }
+
         }
     }
 }

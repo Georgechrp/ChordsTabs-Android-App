@@ -6,18 +6,18 @@ import androidx.lifecycle.MutableLiveData
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.models.ChordPosition
-import com.unipi.george.chordshub.models.SongData
+import com.unipi.george.chordshub.models.song.Song
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.Query
-import com.unipi.george.chordshub.models.SongLine
+import com.unipi.george.chordshub.models.song.ChordPosition
+import com.unipi.george.chordshub.models.song.SongLine
 
 class FirestoreRepository(private val firestore: FirebaseFirestore) {
 
     private val db = FirebaseFirestore.getInstance()
     private var songDocument: DocumentReference? = null
-    private val _songs = MutableLiveData<List<SongData>>()
-    val songs: LiveData<List<SongData>> = _songs
+    private val _songs = MutableLiveData<List<Song>>()
+    val songs: LiveData<List<Song>> = _songs
 
     fun setSongId(songId: String) {
         songDocument = firestore.collection("songs").document(songId)
@@ -43,7 +43,7 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
             }
     }
 
-    suspend fun getSongDataAsync(songId: String): SongData? {
+    suspend fun getSongDataAsync(songId: String): Song? {
         Log.d("Firestore", "Fetching song data for ID: $songId")
 
         return try {
@@ -76,7 +76,7 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
             } ?: emptyList()
 
             Log.d("Firestore", "✅ Song loaded successfully: $title")
-            return SongData(
+            return Song(
                 title = title,
                 artist = artist,
                 key = key,
@@ -92,12 +92,12 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
         }
     }
 
-    fun getSongsByArtist(artistName: String, callback: (List<SongData>) -> Unit) {
+    fun getSongsByArtist(artistName: String, callback: (List<Song>) -> Unit) {
         db.collection("songs")
             .whereEqualTo("artist", artistName)
             .get()
             .addOnSuccessListener { result ->
-                val songs = result.documents.mapNotNull { it.toObject(SongData::class.java) }
+                val songs = result.documents.mapNotNull { it.toObject(Song::class.java) }
                 callback(songs)
             }
             .addOnFailureListener { exception ->
@@ -106,16 +106,16 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
             }
     }
 
-    suspend fun addSongData(songId: String, songData: SongData) {
+    suspend fun addSongData(songId: String, song: Song) {
         val songMap = hashMapOf(
-            "title" to songData.title,
-            "artist" to songData.artist,
-            "key" to songData.key,
-            "bpm" to songData.bpm,
-            "genres" to songData.genres,
-            "createdAt" to songData.createdAt,
-            "creatorId" to songData.creatorId,
-            "lyrics" to songData.lyrics?.map { line ->
+            "title" to song.title,
+            "artist" to song.artist,
+            "key" to song.key,
+            "bpm" to song.bpm,
+            "genres" to song.genres,
+            "createdAt" to song.createdAt,
+            "creatorId" to song.creatorId,
+            "lyrics" to song.lyrics?.map { line ->
                 mapOf(
                     "lineNumber" to line.lineNumber,
                     "text" to line.text,

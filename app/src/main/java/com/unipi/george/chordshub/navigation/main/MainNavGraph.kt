@@ -34,6 +34,21 @@ import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
+/*
+ * Main navigation graph for the app.
+ *
+ * Defines the navigation structure between all main and secondary screens,
+ * including Home, Search, Upload, Library, Settings, Profile, Recents,
+ * as well as deep-linked screens like DetailedSongView, ArtistScreen, and PlaylistDetail.
+ *
+ * It handles:
+ * - Full screen state management
+ * - Menu visibility (ProfileMenu)
+ * - Argument passing (e.g., artistName, playlistName)
+ * - ViewModel instantiation and sharing across composables
+ */
+
+
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun MainNavGraph(

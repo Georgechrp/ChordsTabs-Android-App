@@ -1,6 +1,5 @@
 package com.unipi.george.chordshub.components
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +24,12 @@ import coil.compose.rememberAsyncImagePainter
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.ui.theme.checkedFilter
 import com.unipi.george.chordshub.ui.theme.filterColor
+
+
+ /*
+*   My custom Top Bar used by 3 main screens(Home, Search, Library)
+ */
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

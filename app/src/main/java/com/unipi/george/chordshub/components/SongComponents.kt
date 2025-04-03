@@ -21,9 +21,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import com.unipi.george.chordshub.models.SongLine
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import androidx.compose.material3.MaterialTheme
+import com.unipi.george.chordshub.models.song.SongLine
+
+/*
+*   3 functions about print Cards-Songs and clickable chords
+*/
 
 @Composable
 fun CardsView(
@@ -94,10 +98,11 @@ fun SongCard(
     }
 }
 
-
-
 @Composable
-fun ChordText(songLine: SongLine, onChordClick: (String) -> Unit) {
+fun ChordText(
+    songLine: SongLine,
+    onChordClick: (String) -> Unit)
+{
     val text = songLine.text
     val chordsInLine = songLine.chords.sortedBy { it.position }
 

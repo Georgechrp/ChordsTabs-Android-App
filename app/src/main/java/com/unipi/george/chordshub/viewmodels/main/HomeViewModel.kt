@@ -3,7 +3,7 @@ package com.unipi.george.chordshub.viewmodels.main
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.models.SongLine
+import com.unipi.george.chordshub.models.song.SongLine
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

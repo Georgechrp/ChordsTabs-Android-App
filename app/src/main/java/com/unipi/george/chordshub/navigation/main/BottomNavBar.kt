@@ -20,6 +20,11 @@ import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Search
 import com.unipi.george.chordshub.navigation.AppScreens
 
+ /*
+*   Main Navigate between Home, Search, Library
+*   Hide the bar when the screen is full-screen
+ */
+
 @Composable
 fun MainBottomNavBar(
     navController: NavController,
@@ -36,9 +41,9 @@ fun MainBottomNavBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), // 👈 ελαφρύ φόντο για contrast
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
             shape = RoundedCornerShape(20.dp),
-            shadowElevation = 20.dp, // 👈 Η σκιά
+            shadowElevation = 20.dp,
             tonalElevation = 0.dp
         ) {
             Row(
@@ -59,7 +64,7 @@ fun MainBottomNavBar(
                             .clickable {
                                 navController.navigate(screen.route) {
                                     popUpTo(screen.route) { inclusive = true }
-                                    launchSingleTop = true
+                                    launchSingleTop = false
                                     restoreState = true
                                 }
                             }

@@ -16,9 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.models.ChordPosition
-import com.unipi.george.chordshub.models.SongLine
-import com.unipi.george.chordshub.models.SongData
+import com.unipi.george.chordshub.models.song.ChordPosition
+import com.unipi.george.chordshub.models.song.Song
+import com.unipi.george.chordshub.models.song.SongLine
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import kotlinx.coroutines.launch
@@ -122,18 +122,18 @@ fun UploadScreen(navController: NavController, painter: Painter, onMenuClick: ()
                             )
                         }
 
-                        val songData = SongData(
+                        val song = Song(
                             title = title,
                             artist = artist,
                             key = key,
                             bpm = bpm.toIntOrNull() ?: 0,
                             genres = listOf("User Added"),
                             createdAt = System.currentTimeMillis().toString(),
-                            creatorId = currentUserId, // Προσωρινό
+                            creatorId = currentUserId,
                             lyrics = songLines
                         )
 
-                        repository.addSongData(songId, songData)
+                        repository.addSongData(songId, song)
                         navController.popBackStack()
                     }
                 },

@@ -13,7 +13,7 @@ import androidx.compose.material.icons.filled.Info
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import com.unipi.george.chordshub.models.SongData
+import com.unipi.george.chordshub.models.song.Song
 import com.unipi.george.chordshub.utils.ArtistInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,7 +21,7 @@ import com.unipi.george.chordshub.utils.ArtistInfo
 fun ArtistScreen(artistName: String, navController: NavController) {
    // val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
     var showInfoSheet by remember { mutableStateOf(false) }
-    var songs by remember { mutableStateOf<List<SongData>>(emptyList()) }
+    var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
 
   /*  LaunchedEffect(artistName) {
         repository.getSongsByArtist(artistName) { fetchedSongs ->

@@ -19,6 +19,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 
+/*
+ * MainScaffold ορίζει τη βασική αρχιτεκτονική δομή του UI:
+ * - Φιλοξενεί το MainNavGraph (navigation σε όλες τις οθόνες)
+ * - Εμφανίζει το Bottom Navigation Bar όταν χρειάζεται
+ * - Διαχειρίζεται το menu state και την αντίστοιχη συμπεριφορά του back button
+ */
+
+
+
 @Composable
 fun MainScaffold(
     navController: NavHostController,
@@ -29,8 +38,6 @@ fun MainScaffold(
     val isMenuOpen by mainViewModel.isMenuOpen
     val isFullScreen by homeViewModel.isFullScreen.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    //val bottomBarExcludedScreens = remember { setOf("DetailedSongView") }
-
     val bottomBarExcludedScreens = setOf("detailedSongView/{songTitle}")
 
 
@@ -41,14 +48,13 @@ fun MainScaffold(
     }
 
     Scaffold(
-        containerColor = Color.Transparent // Κανένα φόντο
+        containerColor = Color.Transparent
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Κύριο περιεχόμενο
             MainNavGraph(
                 navController = navController,
                 mainViewModel = mainViewModel,
@@ -62,8 +68,8 @@ fun MainScaffold(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp)
-                        .align(Alignment.BottomCenter) // 👈 Το βάζει στο κάτω μέρος
-                        .zIndex(1f) // Να πετάει πάνω από το υπόλοιπο
+                        .align(Alignment.BottomCenter)
+                        .zIndex(1f)
                 ) {
                     MainBottomNavBar(navController = navController, isFullScreen = isFullScreen)
                 }

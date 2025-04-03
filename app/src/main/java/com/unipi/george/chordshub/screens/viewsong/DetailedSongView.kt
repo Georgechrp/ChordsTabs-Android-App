@@ -46,8 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.unipi.george.chordshub.components.ChordText
-import com.unipi.george.chordshub.models.SongLine
-import com.unipi.george.chordshub.models.SongData
+import com.unipi.george.chordshub.models.song.SongLine
+import com.unipi.george.chordshub.models.song.Song
 import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.utils.saveCardContentAsPdf
 import android.content.Context
@@ -80,7 +80,7 @@ fun DetailedSongView(
     homeViewModel: HomeViewModel,
     userViewModel: UserViewModel
 ) {
-    val songDataState = remember { mutableStateOf<SongData?>(null) }
+    val songState = remember { mutableStateOf<Song?>(null) }
     val transposeValue = remember { mutableStateOf(0) }
     val isScrolling = remember { mutableStateOf(false) }
     val scrollSpeed = remember { mutableFloatStateOf(30f) }
@@ -110,7 +110,7 @@ fun DetailedSongView(
         Log.d("TransposeTest", "Loaded transpose value: $savedTranspose for songId: $songId")
 
         val songData = repository.getSongDataAsync(songId)
-        songDataState.value = songData
+        songState.value = songData
 
         userId?.let { id ->
             userViewModel.addRecentSong(id, songData?.title ?: "Untitled")
@@ -119,15 +119,17 @@ fun DetailedSongView(
 
 
     fun applyTranspose() {
-        songDataState.value = songDataState.value?.copy(
-            lyrics = songDataState.value?.lyrics?.map { line ->
-                line.copy(
-                    chords = line.chords.map { chord ->
-                        chord.copy(chord = getNewKey(chord.chord, transposeValue.value))
-                    }
-                )
-            }
-        )
+        songState.value = songState.value?.lyrics?.map { line ->
+            line.copy(
+                chords = line.chords.map { chord ->
+                    chord.copy(chord = getNewKey(chord.chord, transposeValue.value))
+                }
+            )
+        }?.let {
+            songState.value?.copy(
+                lyrics = it
+            )
+        }
         transposePreferences.saveTransposeValue(songId, transposeValue.value)
         Log.d("TransposeTest", "Saved transpose value: ${transposeValue.value} for songId: $songId")
 
@@ -153,12 +155,12 @@ fun DetailedSongView(
             }
     )
     {
-        if (songDataState.value == null) {
+        if (songState.value == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Loading...")
             }
         } else {
-            val songData = songDataState.value!!
+            val songData = songState.value!!
 
             Card(
                 modifier = if (isFullScreenState) Modifier.fillMaxSize() else Modifier.fillMaxWidth().padding(16.dp),
@@ -209,8 +211,8 @@ fun DetailedSongView(
                             applyTranspose()
                         },
                         context = LocalContext.current,
-                        songTitle = songDataState.value?.title ?: "Untitled",
-                        songLyrics = songDataState.value?.lyrics ?: emptyList()
+                        songTitle = songState.value?.title ?: "Untitled",
+                        songLyrics = songState.value?.lyrics ?: emptyList()
                     )
                     QRCodeDialog(showQRCodeDialog, songId)
                 }

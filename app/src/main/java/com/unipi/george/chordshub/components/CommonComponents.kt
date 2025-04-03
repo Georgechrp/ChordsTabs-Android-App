@@ -11,6 +11,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 
+/*
+*   Just 2 methods can be used by any place in the app
+*/
+
 @Composable
 fun LoadingView() {
     Box(
@@ -22,7 +26,7 @@ fun LoadingView() {
 }
 
 @Composable
-fun AppText(text: String, settingsViewModel: SettingsViewModel, modifier: Modifier = Modifier) {
+fun SettingsHeads(text: String, settingsViewModel: SettingsViewModel, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = TextStyle(fontSize = settingsViewModel.fontSize.value.sp),

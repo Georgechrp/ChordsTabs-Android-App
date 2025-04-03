@@ -12,6 +12,16 @@ import com.unipi.george.chordshub.viewmodels.SettingsViewModelFactory
 import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 
+/*
+ *
+ * - Applies the selected theme (light/dark) based on user preferences
+ * - Observes the user's session status
+ * - Decides whether to show the authenticated MainScaffold (main app) or the AuthFlowNavGraph (login/register)
+ * - Instantiates SettingsViewModel with AppSettingsPreferences
+ *
+ */
+
+
 @Composable
 fun RootAppEntry(
     sessionViewModel: SessionViewModel,
