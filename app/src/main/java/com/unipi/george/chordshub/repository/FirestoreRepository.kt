@@ -209,6 +209,9 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
     }
 
 
+    /*
+    *    SearchScreen Functions
+     */
     fun searchSongs(query: String, callback: (List<Triple<String, String, String>>) -> Unit) {
         if (query.isEmpty()) {
             callback(emptyList())
@@ -247,7 +250,6 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
             }
     }
 
-
     fun getRandomSongs(limit: Int, callback: (List<Pair<String, String>>) -> Unit) {
         db.collection("songs")
             .limit(limit.toLong())
@@ -267,7 +269,9 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
     }
 
 
-    //Library functions
+    /*
+    *   Library functions for LibraryScreen
+     */
     fun createPlaylist(userId: String, playlistName: String, callback: (Boolean) -> Unit) {
         val userDocRef = db.collection("users").document(userId)
 
@@ -440,7 +444,7 @@ class FirestoreRepository(private val firestore: FirebaseFirestore) {
 
 
      /*
-    *   -- Playlists --
+    *   -- Playlists for Detailed SongView --
      */
      fun createTempPlaylist(userId: String, firstSongId: String, callback: (Boolean) -> Unit) {
          val playlistData = mapOf(
