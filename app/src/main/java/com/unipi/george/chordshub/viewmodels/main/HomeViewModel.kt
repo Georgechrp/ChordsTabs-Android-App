@@ -24,6 +24,14 @@ class HomeViewModel : ViewModel() {
     private val _isFullScreen = MutableStateFlow(false)
     val isFullScreen: StateFlow<Boolean> get() = _isFullScreen
 
+    private val _showBottomBar = MutableStateFlow(true)
+    val showBottomBar: StateFlow<Boolean> = _showBottomBar
+
+    fun setShowBottomBar(visible: Boolean) {
+        _showBottomBar.value = visible
+    }
+
+
     fun setFullScreen(value: Boolean) {
         _isFullScreen.value = value
     }

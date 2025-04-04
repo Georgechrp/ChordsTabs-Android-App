@@ -63,6 +63,7 @@ fun MainScaffold(
 
             // 👇 BottomNavBar κάτω δεξιά, με zIndex
             val currentRoute = navBackStackEntry?.destination?.route
+            val showBottomBar by homeViewModel.showBottomBar.collectAsState()
             if (!isFullScreen && currentRoute !in bottomBarExcludedScreens) {
                 Box(
                     modifier = Modifier
@@ -71,7 +72,9 @@ fun MainScaffold(
                         .align(Alignment.BottomCenter)
                         .zIndex(1f)
                 ) {
-                    MainBottomNavBar(navController = navController, isFullScreen = isFullScreen)
+                    if (showBottomBar && currentRoute !in bottomBarExcludedScreens) {
+                        MainBottomNavBar(navController = navController, isFullScreen = isFullScreen)
+                    }
                 }
             }
         }

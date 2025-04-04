@@ -1,5 +1,6 @@
 package com.unipi.george.chordshub.screens.main
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -30,6 +31,8 @@ import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 import kotlin.math.roundToInt
 import com.unipi.george.chordshub.components.CardsView
 import com.unipi.george.chordshub.components.LoadingView
+import com.unipi.george.chordshub.repository.AuthRepository
+import com.unipi.george.chordshub.viewmodels.seconds.TempPlaylistViewModel
 import kotlinx.coroutines.delay
 
 @Composable
@@ -39,7 +42,8 @@ fun HomeScreen(
     userViewModel: UserViewModel,
     navController: NavController,
     painter: Painter,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    tempPlaylistViewModel: TempPlaylistViewModel
 ) {
     val selectedSongId by homeViewModel.selectedSongId.collectAsState()
     val songList by homeViewModel.songList.collectAsState()
@@ -117,6 +121,28 @@ fun HomeScreen(
             .nestedScroll(nestedScrollConnection)
             .background(Color.Transparent))
         {
+            LaunchedEffect(selectedSongId) {
+                selectedSongId?.let { songId ->
+                    val userId = AuthRepository.getUserId()
+                    if (userId != null) {
+                        try {
+                            tempPlaylistViewModel.createPlaylist(userId, songId)
+                        } catch (e: Exception) {
+                            Log.e("Playlist", "Failed to create playlist", e)
+                        }
+
+                    }
+                }
+            }
+            LaunchedEffect(selectedSongId) {
+                if (selectedSongId != null) {
+                    homeViewModel.setShowBottomBar(false) // Κρύψτο όταν μπει σε song
+                } else {
+                    homeViewModel.setShowBottomBar(true)  // Εμφάνισέ το όταν φύγει
+                }
+            }
+
+
             when {
                 selectedSongId == null && songList.isEmpty() && showNoResults -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -127,9 +153,12 @@ fun HomeScreen(
                         )
                     }
                 }
+
                 selectedSongId == null && songList.isEmpty() -> LoadingView()
                 selectedSongId == null -> CardsView(songList, homeViewModel, selectedTitle)
-                else -> DetailedSongView(
+                else ->
+
+                    DetailedSongView(
                     songId = selectedSongId!!,
                     isFullScreenState = isFullScreenState,
                     onBack = {

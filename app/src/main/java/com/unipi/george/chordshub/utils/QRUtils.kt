@@ -12,11 +12,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import com.journeyapps.barcodescanner.ScanContract
@@ -48,20 +51,36 @@ fun QRCodeDialog(showDialog: MutableState<Boolean>, songId: String) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
             confirmButton = {
+                // Κουμπί κλεισίματος
                 Button(onClick = { showDialog.value = false }) {
                     Text("Κλείσιμο")
                 }
             },
-            title = { Text(stringResource(R.string.generate_qr_code_text)) },
+            title = {
+                // Τίτλος του Dialog
+                Text(
+                    text = stringResource(R.string.generate_qr_code_text),
+                    style = TextStyle(fontSize = 18.sp),
+                    modifier = Modifier.padding(bottom = 8.dp) // Προσθέτουμε padding στον τίτλο
+                )
+            },
             text = {
-                val qrBitmap = generateQRCode(songId)
-                qrBitmap?.let {
-                    Image(bitmap = it.asImageBitmap(), contentDescription = "QR Code")
-                } ?: Text("Σφάλμα δημιουργίας QR")
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(16.dp) // Padding γύρω από το κείμενο και την εικόνα
+                ) {
+                    // Δημιουργία και εμφάνιση του QR Code
+                    val qrBitmap = generateQRCode(songId)
+                    qrBitmap?.let {
+                        Image(bitmap = it.asImageBitmap(), contentDescription = "QR Code", modifier = Modifier.size(200.dp))
+                    } ?: Text("Σφάλμα δημιουργίας QR")
+                }
             }
         )
     }
 }
+
 
 
 @Composable

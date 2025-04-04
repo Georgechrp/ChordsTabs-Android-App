@@ -10,11 +10,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.google.firebase.firestore.FirebaseFirestore
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.navigation.AppScreens
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.fullNameState
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
+import com.unipi.george.chordshub.repository.FirestoreRepository
+import com.unipi.george.chordshub.screens.TempPlaylistManagerScreen
 import com.unipi.george.chordshub.screens.main.*
 import com.unipi.george.chordshub.screens.viewsong.ArtistScreen
 import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
@@ -29,7 +32,9 @@ import com.unipi.george.chordshub.screens.slidemenu.UploadScreen
 import com.unipi.george.chordshub.sharedpreferences.AppSettingsPreferences
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
+import com.unipi.george.chordshub.viewmodels.TempPlaylistViewModelFactory
 import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
+import com.unipi.george.chordshub.viewmodels.seconds.TempPlaylistViewModel
 import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
@@ -64,6 +69,10 @@ fun MainNavGraph(
     val isMenuOpen by mainViewModel.isMenuOpen
     val painter = painterResource(id = R.drawable.user_icon)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val repository = FirestoreRepository(FirebaseFirestore.getInstance())
+    val factory = TempPlaylistViewModelFactory(repository)
+    val tempPlaylistViewModel: TempPlaylistViewModel = viewModel(factory = factory)
+
 
     // Κλείσιμο του μενού όταν αλλάζει το BackStack
     LaunchedEffect(navBackStackEntry) {
@@ -82,7 +91,8 @@ fun MainNavGraph(
                 userViewModel = userViewModel,
                 navController = navController,
                 painter = painter,
-                onMenuClick = { mainViewModel.setMenuOpen(true) }
+                onMenuClick = { mainViewModel.setMenuOpen(true) },
+                tempPlaylistViewModel = tempPlaylistViewModel
             )
         }
 
@@ -98,6 +108,7 @@ fun MainNavGraph(
                 onFullScreenChange = { homeViewModel.setFullScreen(it) }
             )
         }
+
         composable(AppScreens.Upload.route) {
             UploadScreen(
                 navController = navController,
@@ -105,6 +116,7 @@ fun MainNavGraph(
                 onMenuClick = { mainViewModel.setMenuOpen(true) }
             )
         }
+
         composable(AppScreens.Library.route) {
             LibraryScreen(
                 navController = navController,
@@ -113,6 +125,7 @@ fun MainNavGraph(
                 onMenuClick = { mainViewModel.setMenuOpen(true) }
             )
         }
+
         composable(AppScreens.Profile.route) {
             ProfileScreen(
                 onLogout = {
@@ -167,6 +180,7 @@ fun MainNavGraph(
         composable(AppScreens.Welcome.route) {
             WelcomeScreen(navController, sessionViewModel)
         }
+
         composable("playlist_detail/{playlistName}") { backStackEntry ->
             val name = backStackEntry.arguments?.getString("playlistName") ?: return@composable
             PlaylistDetailScreen(
@@ -175,6 +189,14 @@ fun MainNavGraph(
                 viewModel = viewModel()
             )
         }
+
+        composable("temp_playlist") {
+            TempPlaylistManagerScreen(
+                tempPlaylistViewModel = tempPlaylistViewModel,
+                homeViewModel = homeViewModel,
+            )
+        }
+
     }
 
     ProfileMenu(mainViewModel, navController = navController)

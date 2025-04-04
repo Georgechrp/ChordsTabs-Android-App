@@ -52,19 +52,28 @@ import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.utils.saveCardContentAsPdf
 import android.content.Context
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
+import com.unipi.george.chordshub.components.CardsView
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.sharedpreferences.TransposePreferences
 import com.unipi.george.chordshub.utils.QRCodeDialog
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
+import com.unipi.george.chordshub.viewmodels.seconds.TempPlaylistViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 import kotlinx.coroutines.delay
 
@@ -90,8 +99,7 @@ fun DetailedSongView(
     val showQRCodeDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val transposePreferences = remember { TransposePreferences(context) }
-
-
+    val tempPlaylistViewModel = remember { TempPlaylistViewModel(repository) }
     val userId = AuthRepository.getUserId()
 
     LaunchedEffect(isScrolling.value, scrollSpeed.floatValue) {
@@ -115,6 +123,7 @@ fun DetailedSongView(
         userId?.let { id ->
             userViewModel.addRecentSong(id, songData?.title ?: "Untitled")
         }
+       // tempPlaylistViewModel.createPlaylist(userId, songId)
     }
 
 
@@ -191,7 +200,10 @@ fun DetailedSongView(
                             isScrolling = isScrolling,
                             isSpeedControlVisible = isSpeedControlVisible,
                             showDialog = showDialog,
-                            showQRCodeDialog = showQRCodeDialog
+                            showQRCodeDialog = showQRCodeDialog,
+                            tempPlaylistViewModel = tempPlaylistViewModel,
+                            navController = navController,
+                            homeViewModel = homeViewModel
                         )
 
                     }
@@ -255,16 +267,28 @@ fun SongInfoPlace(
 
 
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun OptionsPlace(
     isScrolling: MutableState<Boolean>,
     isSpeedControlVisible: MutableState<Boolean>,
     showDialog: MutableState<Boolean>,
-    showQRCodeDialog: MutableState<Boolean>
+    showQRCodeDialog: MutableState<Boolean>,
+    tempPlaylistViewModel : TempPlaylistViewModel,
+    navController: NavController,
+    homeViewModel: HomeViewModel
 ) {
-    Row {
+    val userId = UserViewModel().userId
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            tempPlaylistViewModel.loadPlaylist(userId)
+        }
+    }
 
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Box(
             modifier = Modifier
                 .combinedClickable(
@@ -291,6 +315,11 @@ fun OptionsPlace(
             )
         }
 
+        IconButton(onClick = {
+            tempPlaylistViewModel.showBottomSheet()
+        }) {
+            Icon(Icons.Default.QueueMusic, contentDescription = "Playlist")
+        }
 
         IconButton(onClick = { showDialog.value = true }) {
             Icon(
@@ -298,7 +327,24 @@ fun OptionsPlace(
                 contentDescription = "More Options"
             )
         }
+        val showBottomSheet by tempPlaylistViewModel.isBottomSheetVisible.collectAsState()
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    tempPlaylistViewModel.hideBottomSheet()
+                }
+            ) {
+                CardsView(
+                    songList = tempPlaylistViewModel.state.value.songIds.map { songId -> Pair(songId, songId) },
+                    homeViewModel = homeViewModel,
+                    selectedTitle = remember { mutableStateOf<String?>(null) }
+                )
+
+            }
+        }
     }
+
 }
 
 
