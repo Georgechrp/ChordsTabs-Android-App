@@ -20,16 +20,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
-import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.ui.theme.checkedFilter
 import com.unipi.george.chordshub.ui.theme.filterColor
-
 
  /*
 *   My custom Top Bar used by 3 main screens(Home, Search, Library)
  */
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,11 +50,14 @@ fun MyAppTopBar(
                 Box(modifier = Modifier.weight(1f)) {
                     this@Row.content()
                 }
+                //Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
-            scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+            scrolledContainerColor = Color.Transparent
+
         )
     )
 }
@@ -110,31 +109,3 @@ fun FilterRow(
     }
 }
 
-@Composable
-fun CircularImageViewSmall(
-    imageUrl: String?,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .size(30.dp)
-            .clip(CircleShape)
-            .border(2.dp, Color.Gray, CircleShape)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        if (imageUrl != null) {
-            Image(
-                painter = rememberAsyncImagePainter(imageUrl),
-                contentDescription = stringResource(R.string.circular_image_description),
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.user_icon),
-                contentDescription = stringResource(R.string.circular_image_description),
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    }
-}

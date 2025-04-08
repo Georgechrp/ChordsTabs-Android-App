@@ -4,8 +4,8 @@ package com.unipi.george.chordshub.navigation.main
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.unipi.george.chordshub.AppContainer
 import com.unipi.george.chordshub.navigation.auth.AuthFlowNavGraph
-import com.unipi.george.chordshub.sharedpreferences.AppSettingsPreferences
 import com.unipi.george.chordshub.ui.theme.ChordsHubTheme
 import com.unipi.george.chordshub.utils.ObserveUserSession
 import com.unipi.george.chordshub.viewmodels.SettingsViewModelFactory
@@ -23,12 +23,9 @@ import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 
 
 @Composable
-fun RootAppEntry(
-    sessionViewModel: SessionViewModel,
-    appSettingsPreferences: AppSettingsPreferences
-) {
+fun RootAppEntry(sessionViewModel: SessionViewModel) {
     val settingsViewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModelFactory(appSettingsPreferences)
+        factory = SettingsViewModelFactory(AppContainer.appSettingsPreferences)
     )
 
     val darkMode = settingsViewModel.darkMode.value
@@ -40,15 +37,10 @@ fun RootAppEntry(
         ObserveUserSession(sessionViewModel)
 
         if (isUserLoggedInState.value) {
-            MainScaffold(
-                navController = navController,
-                sessionViewModel = sessionViewModel,
-                mainViewModel = viewModel(),
-                homeViewModel = viewModel()
-            )
-
+            MainScaffold(navController = navController, sessionViewModel = sessionViewModel)
         } else {
             AuthFlowNavGraph(navController, isUserLoggedInState)
         }
     }
 }
+

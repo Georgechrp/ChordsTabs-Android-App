@@ -45,8 +45,6 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
             ) {
                 Text("Βιβλιοθήκη", style = MaterialTheme.typography.headlineSmall)
             }
-
-
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {

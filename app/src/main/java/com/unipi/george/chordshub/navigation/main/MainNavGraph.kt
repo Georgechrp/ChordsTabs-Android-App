@@ -26,9 +26,9 @@ import com.unipi.george.chordshub.screens.viewsong.PlaylistDetailScreen
 import com.unipi.george.chordshub.screens.slidemenu.ProfileMenu
 import com.unipi.george.chordshub.screens.slidemenu.viewprofile.ProfileScreen
 import com.unipi.george.chordshub.screens.auth.welcomeuser.WelcomeScreen
-import com.unipi.george.chordshub.screens.slidemenu.RecentsScreen
-import com.unipi.george.chordshub.screens.slidemenu.SettingsScreen
-import com.unipi.george.chordshub.screens.slidemenu.UploadScreen
+import com.unipi.george.chordshub.screens.slidemenu.options.RecentsScreen
+import com.unipi.george.chordshub.screens.slidemenu.options.SettingsScreen
+import com.unipi.george.chordshub.screens.slidemenu.options.UploadScreen
 import com.unipi.george.chordshub.sharedpreferences.AppSettingsPreferences
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel

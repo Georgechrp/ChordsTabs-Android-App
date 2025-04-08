@@ -1,8 +1,10 @@
 package com.unipi.george.chordshub.navigation.main
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -20,40 +22,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 
 /*
- * MainScaffold ορίζει τη βασική αρχιτεκτονική δομή του UI:
- * - Φιλοξενεί το MainNavGraph (navigation σε όλες τις οθόνες)
- * - Εμφανίζει το Bottom Navigation Bar όταν χρειάζεται
- * - Διαχειρίζεται το menu state και την αντίστοιχη συμπεριφορά του back button
+ * Here we have the Main UI
+ * - Navigate to MainNavGraph((navigation to all Screens))
+ * - Handle the manu state from back button
+ * - Prints Bottom Nav Bar when we are in the mainScreens
  */
 
-
-
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScaffold(
     navController: NavHostController,
-    sessionViewModel: SessionViewModel,
-    mainViewModel: MainViewModel = viewModel(),
-    homeViewModel: HomeViewModel = viewModel()
+    sessionViewModel: SessionViewModel
 ) {
+    val mainViewModel: MainViewModel = viewModel()
+    val homeViewModel: HomeViewModel = viewModel()
+
     val isMenuOpen by mainViewModel.isMenuOpen
     val isFullScreen by homeViewModel.isFullScreen.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val bottomBarExcludedScreens = setOf("detailedSongView/{songTitle}")
 
-
-    // Χειρισμός back για το μενού
     BackHandler(enabled = isMenuOpen) {
         Log.d("BackHandler", "Back button pressed - Closing Menu")
         mainViewModel.setMenuOpen(false)
     }
 
     Scaffold(
-        containerColor = Color.Transparent
-    ) { innerPadding ->
+        containerColor = MaterialTheme.colorScheme.background
+    ) { _ ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .systemBarsPadding()
+
         ) {
             MainNavGraph(
                 navController = navController,
@@ -61,9 +62,10 @@ fun MainScaffold(
                 sessionViewModel = sessionViewModel
             )
 
-            // 👇 BottomNavBar κάτω δεξιά, με zIndex
+            // BottomNavBar με zIndex
             val currentRoute = navBackStackEntry?.destination?.route
             val showBottomBar by homeViewModel.showBottomBar.collectAsState()
+
             if (!isFullScreen && currentRoute !in bottomBarExcludedScreens) {
                 Box(
                     modifier = Modifier
@@ -73,12 +75,10 @@ fun MainScaffold(
                         .zIndex(1f)
                 ) {
                     if (showBottomBar && currentRoute !in bottomBarExcludedScreens) {
-                        MainBottomNavBar(navController = navController, isFullScreen = isFullScreen)
+                        BottomNavBar(navController = navController, isFullScreen = isFullScreen)
                     }
                 }
             }
         }
-
     }
-
 }

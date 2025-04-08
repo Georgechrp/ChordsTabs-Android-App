@@ -70,10 +70,18 @@ fun SearchScreen(
     Scaffold(
         topBar = {
             if (selectedSongId == null) {
-                SearchScreenTopBar(
-                    profileImage = profileImage,
+                MyAppTopBar(
+                    imageUrl = profileImage,
                     onMenuClick = onMenuClick
-                )
+                ) {
+                    Text(
+                        text = "Αναζήτηση",
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
             }
         }
@@ -109,23 +117,6 @@ fun SearchScreen(
         }
     }
 }
-
-@Composable
-fun SearchScreenTopBar(profileImage: String?, onMenuClick: () -> Unit) {
-    MyAppTopBar(
-        imageUrl = profileImage,
-        onMenuClick = onMenuClick
-    ) {
-        Text(
-            text = "Αναζήτηση",
-            style = MaterialTheme.typography.headlineSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
 
 
 @Composable

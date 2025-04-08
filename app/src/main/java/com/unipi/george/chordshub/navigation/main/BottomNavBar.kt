@@ -26,10 +26,11 @@ import com.unipi.george.chordshub.navigation.AppScreens
  */
 
 @Composable
-fun MainBottomNavBar(
+fun BottomNavBar(
     navController: NavController,
     isFullScreen: Boolean
 ) {
+
     val items = listOf(
         AppScreens.Home,
         AppScreens.Search,

@@ -1,4 +1,4 @@
-package com.unipi.george.chordshub.screens.slidemenu
+package com.unipi.george.chordshub.screens.slidemenu.options
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState

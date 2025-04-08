@@ -55,7 +55,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -64,10 +63,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.components.CardsView
+import com.unipi.george.chordshub.components.getNewKey
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.sharedpreferences.TransposePreferences
 import com.unipi.george.chordshub.utils.QRCodeDialog
@@ -110,7 +109,6 @@ fun DetailedSongView(
         }
     }
 
-
     LaunchedEffect(songId) {
         val savedTranspose = transposePreferences.getTransposeValue(songId)
         transposeValue.value = savedTranspose
@@ -123,7 +121,6 @@ fun DetailedSongView(
         userId?.let { id ->
             userViewModel.addRecentSong(id, songData?.title ?: "Untitled")
         }
-       // tempPlaylistViewModel.createPlaylist(userId, songId)
     }
 
 
@@ -235,7 +232,6 @@ fun DetailedSongView(
 
 
 
-
 @Composable
 fun SongInfoPlace(
     title: String,
@@ -264,7 +260,6 @@ fun SongInfoPlace(
         )
     }
 }
-
 
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -349,7 +344,10 @@ fun OptionsPlace(
 
 
 @Composable
-fun ControlSpeed(scrollSpeed: MutableState<Float>, isSpeedControlVisible: MutableState<Boolean>) {
+fun ControlSpeed(
+    scrollSpeed: MutableState<Float>,
+    isSpeedControlVisible: MutableState<Boolean>
+){
     if (isSpeedControlVisible.value) {
         Column {
             Row(
@@ -373,7 +371,10 @@ fun ControlSpeed(scrollSpeed: MutableState<Float>, isSpeedControlVisible: Mutabl
 }
 
 @Composable
-fun SongLyricsView(songLines: List<SongLine>, listState: LazyListState) {
+fun SongLyricsView(
+    songLines: List<SongLine>,
+    listState: LazyListState
+) {
     val snackbarHostState = remember { mutableStateOf<String?>(null) }
 
     Box {
@@ -487,28 +488,4 @@ fun OptionsDialog(
     }
 }
 
-
-fun getNewKey(originalKey: String, transpose: Int): String {
-    val sharpNotes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
-    val flatNotes = listOf("C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B")
-
-    // Αναγνώριση της ρίζας και του υπολοίπου
-    val regex = Regex("^([A-Ga-g#b]+)(.*)$")
-    val matchResult = regex.matchEntire(originalKey) ?: return originalKey
-    val (rootNote, suffix) = matchResult.destructured
-
-    // Προσδιορισμός αν η συγχορδία είναι flat ή sharp
-    val isFlat = rootNote.contains("b")
-    val isSharp = rootNote.contains("#")
-
-    // Εύρεση τρέχοντος index για την ρίζα
-    val currentIndex = if (isFlat) flatNotes.indexOf(rootNote) else sharpNotes.indexOf(rootNote)
-    if (currentIndex == -1) return originalKey // Επιστρέφουμε την αρχική αν δεν βρεθεί
-
-    // Υπολογισμός του νέου index
-    val newIndex = (currentIndex + transpose + 12) % 12
-    val newRootNote = if (isFlat) flatNotes[newIndex] else sharpNotes[newIndex]
-
-    return newRootNote + suffix // Διατήρηση του υπολοίπου της συγχορδίας
-}
 

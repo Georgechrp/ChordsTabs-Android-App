@@ -1,5 +1,6 @@
 package com.unipi.george.chordshub.screens.main
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.viewmodels.seconds.TempPlaylistViewModel
 import kotlinx.coroutines.delay
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel,
@@ -73,7 +75,6 @@ fun HomeScreen(
     LaunchedEffect(navBackStackEntry) {
         homeViewModel.fetchFilteredSongs("All")
     }
-
     LaunchedEffect(selectedFilter) {
         homeViewModel.fetchFilteredSongs(selectedFilter)
     }
@@ -91,14 +92,21 @@ fun HomeScreen(
         mainViewModel.setMenuOpen(false)
     }
 
-    Scaffold(containerColor = Color.Transparent,
-        topBar = {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(2.dp)
+            .nestedScroll(nestedScrollConnection)
+            .background(Color.Transparent)
+    ) {
+        Column {
+            // Top bar μόνο όταν δεν είμαστε στο song view
             if (selectedSongId == null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = topBarOffset.roundToInt()) }
-                        .zIndex(1f) // Για σιγουριά ότι είναι πάνω απ’ το scrollable περιεχόμενο
+                        .offset { IntOffset(0, topBarOffset.roundToInt()) }
+                        .zIndex(1f)
                 ) {
                     MyAppTopBar(
                         imageUrl = profileImage,
@@ -112,66 +120,41 @@ fun HomeScreen(
                     }
                 }
             }
-        }
 
-    ) { paddingValues ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(2.dp)
-            .nestedScroll(nestedScrollConnection)
-            .background(Color.Transparent))
-        {
-            LaunchedEffect(selectedSongId) {
-                selectedSongId?.let { songId ->
-                    val userId = AuthRepository.getUserId()
-                    if (userId != null) {
-                        try {
-                            tempPlaylistViewModel.createPlaylist(userId, songId)
-                        } catch (e: Exception) {
-                            Log.e("Playlist", "Failed to create playlist", e)
+            // Main Content
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    selectedSongId == null && songList.isEmpty() && showNoResults -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.unfortunately_text),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
                         }
-
                     }
+
+                    selectedSongId == null && songList.isEmpty() -> LoadingView()
+
+                    selectedSongId == null -> CardsView(songList, homeViewModel, selectedTitle)
+
+                    else -> DetailedSongView(
+                        songId = selectedSongId!!,
+                        isFullScreenState = isFullScreenState,
+                        onBack = {
+                            homeViewModel.clearSelectedSong()
+                            homeViewModel.setFullScreen(false)
+                        },
+                        navController = navController,
+                        mainViewModel = mainViewModel,
+                        homeViewModel = homeViewModel,
+                        userViewModel = userViewModel
+                    )
                 }
             }
-            LaunchedEffect(selectedSongId) {
-                if (selectedSongId != null) {
-                    homeViewModel.setShowBottomBar(false) // Κρύψτο όταν μπει σε song
-                } else {
-                    homeViewModel.setShowBottomBar(true)  // Εμφάνισέ το όταν φύγει
-                }
-            }
-
-
-            when {
-                selectedSongId == null && songList.isEmpty() && showNoResults -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(R.string.unfortunately_text),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                }
-
-                selectedSongId == null && songList.isEmpty() -> LoadingView()
-                selectedSongId == null -> CardsView(songList, homeViewModel, selectedTitle)
-                else ->
-
-                    DetailedSongView(
-                    songId = selectedSongId!!,
-                    isFullScreenState = isFullScreenState,
-                    onBack = {
-                        homeViewModel.clearSelectedSong()
-                        homeViewModel.setFullScreen(false)
-                    },
-                    navController = navController,
-                    mainViewModel = mainViewModel,
-                    homeViewModel = homeViewModel,
-                    userViewModel = userViewModel
-                )
-            }
-
         }
     }
 }
