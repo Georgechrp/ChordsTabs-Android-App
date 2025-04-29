@@ -16,16 +16,14 @@ import com.unipi.george.chordshub.navigation.AppScreens
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.repository.AuthRepository.fullNameState
 import com.unipi.george.chordshub.repository.AuthRepository.isUserLoggedInState
-import com.unipi.george.chordshub.repository.FirestoreRepository
+import com.unipi.george.chordshub.repository.firestore.TempPlaylistRepository
 import com.unipi.george.chordshub.screens.TempPlaylistManagerScreen
 import com.unipi.george.chordshub.screens.main.*
 import com.unipi.george.chordshub.screens.viewsong.ArtistScreen
 import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
 import com.unipi.george.chordshub.screens.slidemenu.viewprofile.EditProfileScreen
 import com.unipi.george.chordshub.screens.viewsong.PlaylistDetailScreen
-import com.unipi.george.chordshub.screens.slidemenu.ProfileMenu
 import com.unipi.george.chordshub.screens.slidemenu.viewprofile.ProfileScreen
-import com.unipi.george.chordshub.screens.auth.welcomeuser.WelcomeScreen
 import com.unipi.george.chordshub.screens.slidemenu.options.RecentsScreen
 import com.unipi.george.chordshub.screens.slidemenu.options.SettingsScreen
 import com.unipi.george.chordshub.screens.slidemenu.options.UploadScreen
@@ -35,7 +33,6 @@ import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.TempPlaylistViewModelFactory
 import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
 import com.unipi.george.chordshub.viewmodels.seconds.TempPlaylistViewModel
-import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
@@ -59,7 +56,7 @@ import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 fun MainNavGraph(
     navController: NavHostController,
     mainViewModel: MainViewModel,
-    sessionViewModel : SessionViewModel
+    profileImageUrl: String?
 ) {
     val homeViewModel: HomeViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
@@ -69,7 +66,7 @@ fun MainNavGraph(
     val isMenuOpen by mainViewModel.isMenuOpen
     val painter = painterResource(id = R.drawable.user_icon)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val repository = FirestoreRepository(FirebaseFirestore.getInstance())
+    val repository = TempPlaylistRepository(FirebaseFirestore.getInstance())
     val factory = TempPlaylistViewModelFactory(repository)
     val tempPlaylistViewModel: TempPlaylistViewModel = viewModel(factory = factory)
 
@@ -90,9 +87,8 @@ fun MainNavGraph(
                 mainViewModel = mainViewModel,
                 userViewModel = userViewModel,
                 navController = navController,
-                painter = painter,
                 onMenuClick = { mainViewModel.setMenuOpen(true) },
-                tempPlaylistViewModel = tempPlaylistViewModel
+                profileImageUrl = profileImageUrl
             )
         }
 
@@ -101,28 +97,26 @@ fun MainNavGraph(
                 viewModel = searchViewModel,
                 mainViewModel = mainViewModel,
                 homeViewModel = homeViewModel,
-                painter = painter,
                 onMenuClick = { mainViewModel.setMenuOpen(true) },
                 navController = navController,
                 isFullScreen = homeViewModel.isFullScreen.value,
-                onFullScreenChange = { homeViewModel.setFullScreen(it) }
+                onFullScreenChange = { homeViewModel.setFullScreen(it) },
+                profileImageUrl = profileImageUrl
             )
         }
 
         composable(AppScreens.Upload.route) {
             UploadScreen(
-                navController = navController,
-                painter = painter,
-                onMenuClick = { mainViewModel.setMenuOpen(true) }
+                navController = navController
             )
         }
 
         composable(AppScreens.Library.route) {
             LibraryScreen(
                 navController = navController,
-                painter = painter,
                 mainViewModel = mainViewModel,
-                onMenuClick = { mainViewModel.setMenuOpen(true) }
+                onMenuClick = { mainViewModel.setMenuOpen(true) },
+                profileImageUrl = profileImageUrl
             )
         }
 
@@ -168,7 +162,7 @@ fun MainNavGraph(
 
             DetailedSongView(
                 songId = songTitle ?: return@composable,
-                isFullScreenState = false, // ή ό,τι έχεις default
+                isFullScreenState = false,
                 onBack = { navController.popBackStack() },
                 navController = navController,
                 mainViewModel = mainViewModel,
@@ -177,9 +171,7 @@ fun MainNavGraph(
             )
         }
 
-        composable(AppScreens.Welcome.route) {
-            WelcomeScreen(navController, sessionViewModel)
-        }
+
 
         composable("playlist_detail/{playlistName}") { backStackEntry ->
             val name = backStackEntry.arguments?.getString("playlistName") ?: return@composable
@@ -193,11 +185,11 @@ fun MainNavGraph(
         composable("temp_playlist") {
             TempPlaylistManagerScreen(
                 tempPlaylistViewModel = tempPlaylistViewModel,
-                homeViewModel = homeViewModel,
+                homeViewModel = homeViewModel
             )
         }
 
     }
 
-    ProfileMenu(mainViewModel, navController = navController)
+    //ProfileMenu(mainViewModel, navController = navController)
 }

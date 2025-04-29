@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.unipi.george.chordshub.models.song.SongLine
-import com.unipi.george.chordshub.repository.FirestoreRepository
+import com.unipi.george.chordshub.repository.firestore.SongRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -27,6 +27,17 @@ class HomeViewModel : ViewModel() {
     private val _showBottomBar = MutableStateFlow(true)
     val showBottomBar: StateFlow<Boolean> = _showBottomBar
 
+    private val _fetchArtists = MutableStateFlow<String?>(null)
+    val fetchArtists: StateFlow<String?> get() = _fetchArtists
+
+    fun getAllArtists() {
+        _fetchArtists.value = "trigger"
+    }
+    fun resetFetchArtists() {
+        _fetchArtists.value = null
+    }
+
+
     fun setShowBottomBar(visible: Boolean) {
         _showBottomBar.value = visible
     }
@@ -37,8 +48,8 @@ class HomeViewModel : ViewModel() {
     }
 
     fun fetchFilteredSongs(filter: String) {
-        val repository = FirestoreRepository(FirebaseFirestore.getInstance())
-        repository.getFilteredSongs(filter) { titlesAndIds ->
+        val songRepo = SongRepository(FirebaseFirestore.getInstance())
+        songRepo.getFilteredSongs(filter) { titlesAndIds ->
             _songList.value = titlesAndIds
         }
     }

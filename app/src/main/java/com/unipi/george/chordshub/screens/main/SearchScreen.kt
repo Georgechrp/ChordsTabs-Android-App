@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -23,7 +24,6 @@ import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
 import com.unipi.george.chordshub.utils.QRCodeScannerButton
 import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
-import com.unipi.george.chordshub.components.MyAppTopBar
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
@@ -33,11 +33,11 @@ fun SearchScreen(
     viewModel: SearchViewModel = viewModel(),
     mainViewModel: MainViewModel,
     homeViewModel: HomeViewModel,
-    painter: Painter,
     onMenuClick: () -> Unit,
     navController: NavController,
     isFullScreen: Boolean,
-    onFullScreenChange: (Boolean) -> Unit
+    onFullScreenChange: (Boolean) -> Unit,
+    profileImageUrl: String?
 ) {
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
     val searchResults by viewModel.searchResults.collectAsState()
@@ -52,6 +52,31 @@ fun SearchScreen(
             viewModel.clearSearchResults()
         }
     }
+    LaunchedEffect(Unit) {
+        mainViewModel.setTopBarContent {
+            mainViewModel.setTopBarContent {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.search_text),
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    QRCodeScannerButton(viewModel = viewModel)
+                }
+            }
+
+
+        }
+    }
+
+
+
 
     BackHandler {
         if (isMenuOpen) {
@@ -67,55 +92,37 @@ fun SearchScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            if (selectedSongId == null) {
-                MyAppTopBar(
-                    imageUrl = profileImage,
-                    onMenuClick = onMenuClick
-                ) {
-                    Text(
-                        text = "Αναζήτηση",
-                        style = MaterialTheme.typography.headlineSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
 
-            }
-        }
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (selectedSongId == null) {
-                SearchContent(
-                    searchText = searchText,
-                    onSearchTextChange = {
-                        searchText = it
-                        viewModel.searchSongs(it.text)
-                    },
-                    searchResults = searchResults,
-                    onSongSelect = { viewModel.selectSong(it) },
-                    viewModel = viewModel,
-                    isFullScreen = isFullScreen,
-                    randomSongs = randomSongs
-                )
-            } else {
-                DetailedSongView(
-                    songId = selectedSongId!!,
-                    isFullScreenState = isFullScreen,
-                    onBack = {
-                        onFullScreenChange(false)
-                        viewModel.clearSelectedSong()
-                    },
-                    navController = navController,
-                    mainViewModel = mainViewModel,
-                    homeViewModel = homeViewModel,
-                    userViewModel = userViewModel
-                )
-            }
+    Box(modifier = Modifier.fillMaxSize().padding(top = 56.dp)) {
+        if (selectedSongId == null) {
+            SearchContent(
+                searchText = searchText,
+                onSearchTextChange = {
+                    searchText = it
+                    viewModel.searchSongs(it.text)
+                },
+                searchResults = searchResults,
+                onSongSelect = { viewModel.selectSong(it) },
+                viewModel = viewModel,
+                isFullScreen = isFullScreen,
+                randomSongs = randomSongs
+            )
+        } else {
+            DetailedSongView(
+                songId = selectedSongId!!,
+                isFullScreenState = isFullScreen,
+                onBack = {
+                    onFullScreenChange(false)
+                    viewModel.clearSelectedSong()
+                },
+                navController = navController,
+                mainViewModel = mainViewModel,
+                homeViewModel = homeViewModel,
+                userViewModel = userViewModel
+            )
         }
     }
+
 }
 
 
@@ -153,7 +160,7 @@ fun RandomSongsList(
 ) {
     Column {
         Text(
-            "Top 5 Σήμερα",
+            stringResource(R.string.Discover_something_new_text),
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(8.dp)
         )
@@ -222,7 +229,7 @@ fun SearchBar(
     TextField(
         value = searchText,
         onValueChange = onSearchTextChange,
-        label = { Text("Ψάχνεις κάποιο τραγούδι;") },
+        label = { Text(stringResource(R.string.Are_u_looking_for_something_text)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
         leadingIcon = {
@@ -233,7 +240,7 @@ fun SearchBar(
             )
         },
         trailingIcon = {
-            QRCodeScannerButton(viewModel)
+            //QRCodeScannerButton(viewModel)
         }
     )
 }

@@ -1,37 +1,32 @@
 package com.unipi.george.chordshub.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unipi.george.chordshub.ui.theme.checkedFilter
 import com.unipi.george.chordshub.ui.theme.filterColor
 
- /*
+/*
 *   My custom Top Bar used by 3 main screens(Home, Search, Library)
- */
+*   and 2 functions(FilterButton, FilterRow)
+*/
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyAppTopBar(
     imageUrl: String?,
     onMenuClick: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit
 ) {
     TopAppBar(
@@ -42,16 +37,17 @@ fun MyAppTopBar(
                     .fillMaxWidth()
                     .background(Color.Transparent)
             ) {
-                CircularImageViewSmall(
+                UserProfileImage(
                     imageUrl = imageUrl,
+                    size = 36.dp,
+                    border = true,
                     onClick = onMenuClick
                 )
+
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(modifier = Modifier.weight(1f)) {
                     this@Row.content()
                 }
-                //Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -94,7 +90,7 @@ fun FilterButton(
 fun FilterRow(
     selectedFilter: String,
     onFilterChange: (String) -> Unit,
-    filters: List<String> = listOf("All", "Jazz", "Metal", "Classical", "Britpop", "Pop", "Rock")
+    filters: List<String> = listOf("All", "Pop", "Artists", "Music", "Downloads")
 ) {
     val scrollState = rememberScrollState()
 

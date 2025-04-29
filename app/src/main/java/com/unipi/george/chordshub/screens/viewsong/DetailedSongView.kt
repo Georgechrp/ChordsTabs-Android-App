@@ -45,13 +45,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.components.ChordText
 import com.unipi.george.chordshub.models.song.SongLine
 import com.unipi.george.chordshub.models.song.Song
-import com.unipi.george.chordshub.repository.FirestoreRepository
 import com.unipi.george.chordshub.utils.saveCardContentAsPdf
 import android.content.Context
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -61,13 +60,19 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.components.CardsView
-import com.unipi.george.chordshub.components.getNewKey
 import com.unipi.george.chordshub.repository.AuthRepository
+import com.unipi.george.chordshub.repository.firestore.SongRepository
+import com.unipi.george.chordshub.repository.firestore.TempPlaylistRepository
 import com.unipi.george.chordshub.sharedpreferences.TransposePreferences
 import com.unipi.george.chordshub.utils.QRCodeDialog
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
@@ -82,9 +87,9 @@ fun DetailedSongView(
     songId: String,
     isFullScreenState: Boolean,
     onBack: () -> Unit,
-    repository: FirestoreRepository = FirestoreRepository(FirebaseFirestore.getInstance()),
+    repository: TempPlaylistRepository = TempPlaylistRepository(FirebaseFirestore.getInstance()),
     navController: NavController,
-    mainViewModel: MainViewModel?,
+    mainViewModel: MainViewModel,
     homeViewModel: HomeViewModel,
     userViewModel: UserViewModel
 ) {
@@ -100,6 +105,8 @@ fun DetailedSongView(
     val transposePreferences = remember { TransposePreferences(context) }
     val tempPlaylistViewModel = remember { TempPlaylistViewModel(repository) }
     val userId = AuthRepository.getUserId()
+    val songRepo = SongRepository(FirebaseFirestore.getInstance())
+
 
     LaunchedEffect(isScrolling.value, scrollSpeed.floatValue) {
         while (isScrolling.value) {
@@ -115,7 +122,7 @@ fun DetailedSongView(
 
         Log.d("TransposeTest", "Loaded transpose value: $savedTranspose for songId: $songId")
 
-        val songData = repository.getSongDataAsync(songId)
+        val songData = songRepo.getSongDataAsync(songId)
         songState.value = songData
 
         userId?.let { id ->
@@ -390,8 +397,9 @@ fun SongLyricsView(
                         .fillMaxWidth()
                         .padding(8.dp)
                 ) {
-                    ChordText(songLine = line, onChordClick = { clickedChord ->
-                        snackbarHostState.value = "Επιλέξατε: $clickedChord"
+                    ChordText(
+                        songLine = line,
+                        onChordClick = { clickedChord -> snackbarHostState.value = "Επιλέξατε: $clickedChord"
                     })
                 }
             }
@@ -488,4 +496,60 @@ fun OptionsDialog(
     }
 }
 
+fun getNewKey(originalKey: String, transpose: Int): String {
+    val sharpNotes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 
+    // Βρίσκουμε το index της συγχορδίας
+    val currentIndex = sharpNotes.indexOf(originalKey)
+    if (currentIndex == -1) return originalKey
+
+    // Υπολογισμός νέου index με circular logic
+    val newIndex = (currentIndex + transpose + 12) % 12
+
+    return sharpNotes[newIndex]
+}
+
+
+@Composable
+fun ChordText(
+    songLine: SongLine,
+    onChordClick: (String) -> Unit
+) {
+    val text = songLine.text
+    val chordsInLine = songLine.chords.sortedBy { it.position }
+
+    val annotatedString = buildAnnotatedString {
+        var currentPos = 0
+
+        chordsInLine.forEach { chord ->
+            val relativePosition = chord.position.coerceAtMost(text.length)
+            while (currentPos < relativePosition) {
+                append(" ")
+                currentPos++
+            }
+            pushStringAnnotation(tag = "chord", annotation = chord.chord)
+            withStyle(style = SpanStyle(color = Color.Red, fontSize = 18.sp)) {
+                append(chord.chord)
+            }
+            pop()
+            currentPos += chord.chord.length + 1
+        }
+        append("\n$text")
+    }
+
+    ClickableText(
+        text = annotatedString,
+        style = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.Start),
+        modifier = Modifier.fillMaxWidth().padding(4.dp),
+        onClick = { offset ->
+            val clickedAnnotations = annotatedString.getStringAnnotations(
+                tag = "chord",
+                start = offset,
+                end = offset
+            )
+            if (clickedAnnotations.isNotEmpty()) {
+                onChordClick(clickedAnnotations.first().item)
+            }
+        }
+    )
+}

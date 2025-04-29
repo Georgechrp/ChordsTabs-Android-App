@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ChordsTabs</string>
+    <string name="app_name">ChordHub</string>
 
     <!--                   LoginScreen                    -->
     <!-- Labels for input fields -->
@@ -86,6 +86,16 @@
     <string name="delete_playlist_text">🗑️Delete Playlist</string>"
     <string name="give_a_name_to_playlist">Give a name to playlist:</string>
     <string name="new_name_text" > New name</string>
+    <string name="Library_text">Your Library</string>
+    <string name="Create_a_playlist_text">Create a playlist</string>
+    <string name="name_of_playlist_text">Name of playlist</string>
+
+
+
+    <!--   Search Screen    -->
+    <string name="search_text">Search</string>"
+    <string name="Discover_something_new_text">Discover something new</string>
+    <string name="Are_u_looking_for_something_text">Are u looking for something?</string>
 
 
     <!--  More     -->
@@ -97,4 +107,5 @@
     <string name="unfortunately_text">Unfortunately, there are no results for this filter at the moment.</string>
 
 
+    <string name="create_text">Create</string>
 </resources>

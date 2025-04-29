@@ -9,10 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import com.unipi.george.chordshub.models.User
 
 object AuthRepository {
+
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
     @SuppressLint("StaticFieldLeak")
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
-
     val isUserLoggedInState = mutableStateOf(isUserLoggedIn())
     val fullNameState = mutableStateOf(getFullName())
 

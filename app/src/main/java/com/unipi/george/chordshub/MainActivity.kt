@@ -12,16 +12,17 @@ import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var sessionViewModel: SessionViewModel
+    private lateinit var sessionViewModel: SessionViewModel  //late initializing sessionViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        WindowCompat.setDecorFitsSystemWindows(window, false)// UI starts from (0,0)
+        window.statusBarColor = android.graphics.Color.BLACK
 
-        AppContainer.appSettingsPreferences = AppSettingsPreferences(this)
+        AppContainer.appSettingsPreferences = AppSettingsPreferences(this) //load app settings else works with default values
         sessionViewModel = ViewModelProvider(this)[SessionViewModel::class.java]
+
 
         setContent {
             RootAppEntry(sessionViewModel)

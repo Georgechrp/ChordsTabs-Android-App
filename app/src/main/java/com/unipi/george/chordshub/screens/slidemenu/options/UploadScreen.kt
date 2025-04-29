@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -20,13 +19,13 @@ import com.unipi.george.chordshub.models.song.ChordPosition
 import com.unipi.george.chordshub.models.song.Song
 import com.unipi.george.chordshub.models.song.SongLine
 import com.unipi.george.chordshub.repository.AuthRepository
-import com.unipi.george.chordshub.repository.FirestoreRepository
+import com.unipi.george.chordshub.repository.firestore.SongRepository
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UploadScreen(navController: NavController, painter: Painter, onMenuClick: () -> Unit) {
-    val repository = FirestoreRepository(FirebaseFirestore.getInstance())
+fun UploadScreen(navController: NavController) {
+    val songRepo = SongRepository(FirebaseFirestore.getInstance())
     val coroutineScope = rememberCoroutineScope()
 
     var title by remember { mutableStateOf("") }
@@ -133,7 +132,7 @@ fun UploadScreen(navController: NavController, painter: Painter, onMenuClick: ()
                             lyrics = songLines
                         )
 
-                        repository.addSongData(songId, song)
+                        songRepo.addSongData(songId, song)
                         navController.popBackStack()
                     }
                 },

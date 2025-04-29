@@ -1,13 +1,15 @@
 package com.unipi.george.chordshub.viewmodels.main
 
 import androidx.lifecycle.ViewModel
-import com.unipi.george.chordshub.repository.FirestoreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.repository.firestore.SearchRepository
+import com.unipi.george.chordshub.repository.firestore.SongRepository
 
 class SearchViewModel : ViewModel() {
-    private val repository = FirestoreRepository(FirebaseFirestore.getInstance())
+    private val songRepo = SongRepository(FirebaseFirestore.getInstance())
+    private val searchRepo = SearchRepository(FirebaseFirestore.getInstance())
 
     private val _searchResults = MutableStateFlow<List<Triple<String, String, String>>>(emptyList())
     val searchResults: StateFlow<List<Triple<String, String, String>>> = _searchResults
@@ -19,7 +21,7 @@ class SearchViewModel : ViewModel() {
     val randomSongs: StateFlow<List<Pair<String, String>>> = _randomSongs
 
     init {
-        fetchRandomSongs() // ✅ Φέρνουμε 5 τυχαία τραγούδια κατά την εκκίνηση
+        fetchRandomSongs() // Φέρνουμε 5 τυχαία τραγούδια κατά την εκκίνηση
     }
 
     fun clearSearchResults() {
@@ -32,7 +34,7 @@ class SearchViewModel : ViewModel() {
             return
         }
 
-        repository.searchSongs(query) { results ->
+        searchRepo.searchSongs(query) { results ->
             _searchResults.value = results
         }
     }
@@ -46,7 +48,7 @@ class SearchViewModel : ViewModel() {
     }
 
     private fun fetchRandomSongs() {
-        repository.getRandomSongs(5) { songs ->
+        songRepo.getRandomSongs(5) { songs ->
             _randomSongs.value = songs
         }
     }

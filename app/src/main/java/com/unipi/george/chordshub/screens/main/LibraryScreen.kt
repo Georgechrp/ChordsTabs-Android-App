@@ -9,19 +9,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
-import com.unipi.george.chordshub.components.MyAppTopBar
 import com.unipi.george.chordshub.viewmodels.main.LibraryViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel: MainViewModel, onMenuClick: () -> Unit) {
+fun LibraryScreen(navController: NavController, mainViewModel: MainViewModel, onMenuClick: () -> Unit, profileImageUrl: String?) {
     val viewModel: LibraryViewModel = viewModel()
     val playlists by viewModel.playlists.collectAsState()
 
@@ -37,37 +35,17 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
     var newPlaylistName by remember { mutableStateOf("") }
     val profileImage by mainViewModel.profileImageUrl.collectAsState()
 
-    Scaffold(
-        topBar = {
-            MyAppTopBar(
-                imageUrl = profileImage,
-                onMenuClick = onMenuClick
-            ) {
-                Text("Βιβλιοθήκη", style = MaterialTheme.typography.headlineSmall)
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                val existingNames = playlists.keys
 
-                // Βρίσκουμε το μικρότερο διαθέσιμο όνομα
-                var nextNumber = 1
-                while (existingNames.contains("My Playlist #$nextNumber")) {
-                    nextNumber++
-                }
-
-                playlistName = "My Playlist #$nextNumber"
-                showDialog = true
-            },
-                modifier = Modifier.padding(bottom = 76.dp)
-            )
-            {
-                Text("+", style = MaterialTheme.typography.headlineSmall)
-            }
+    LaunchedEffect(Unit) {
+        mainViewModel.setTopBarContent {
+            Text(stringResource(R.string.Library_text), style = MaterialTheme.typography.headlineSmall)
         }
-    ) { paddingValues ->
+    }
+
+    Box(modifier = Modifier.fillMaxSize().padding(top = 56.dp)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            modifier = Modifier
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (playlists.isEmpty()) {
@@ -111,17 +89,39 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                     }
                 }
             }
+
+        }
+
+        // FloatingActionButton
+        FloatingActionButton(onClick = {
+            val existingNames = playlists.keys
+
+            // Βρίσκουμε το μικρότερο διαθέσιμο όνομα
+            var nextNumber = 1
+            while (existingNames.contains("My Playlist #$nextNumber")) {
+                nextNumber++
+            }
+
+            playlistName = "My Playlist #$nextNumber"
+            showDialog = true
+        },
+            modifier = Modifier.padding(bottom = 86.dp, end = 16.dp).align(Alignment.BottomEnd)
+        )
+        {
+            Text("+", style = MaterialTheme.typography.headlineSmall)
         }
     }
+
+
 
     // Διάλογος για δημιουργία playlist
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Δημιουργία Playlist") },
+            title = { Text(stringResource(R.string.Create_a_playlist_text)) },
             text = {
                 Column {
-                    Text("Δώσε ένα όνομα για τη νέα playlist σου:")
+                    Text(stringResource(R.string.give_a_name_to_playlist))
 
                     OutlinedTextField(
                         value = playlistName,
@@ -129,7 +129,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                             playlistName = it
                             duplicateError.value = false // reset error όταν ο χρήστης αλλάζει κάτι
                         },
-                        label = { Text("Όνομα Playlist") }
+                        label = { Text(stringResource(R.string.name_of_playlist_text)) }
                     )
                     if (duplicateError.value) {
                         Text(
@@ -157,12 +157,12 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
                         }
                     }
                 }) {
-                    Text("Δημιουργία")
+                    Text(stringResource(R.string.create_text))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Άκυρο")
+                    Text(stringResource(R.string.cancel_button_text))
                 }
             }
         )
@@ -199,7 +199,7 @@ fun LibraryScreen(navController: NavController, painter: Painter, mainViewModel:
             },
             dismissButton = {
                 TextButton(onClick = { showAddSongDialog = false }) {
-                    Text("Άκυρο")
+                    Text(stringResource(R.string.cancel_button_text))
                 }
             }
         )

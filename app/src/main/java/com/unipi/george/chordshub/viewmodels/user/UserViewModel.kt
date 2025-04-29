@@ -3,10 +3,12 @@ package com.unipi.george.chordshub.viewmodels.user
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.unipi.george.chordshub.models.User
 import com.unipi.george.chordshub.repository.AuthRepository
+import kotlinx.coroutines.launch
 
 
 class UserViewModel : ViewModel() {
@@ -27,6 +29,8 @@ class UserViewModel : ViewModel() {
 
     private val _recentSongs = mutableStateOf<List<String>>(emptyList())
     val recentSongs: State<List<String>> = _recentSongs
+
+
 
     fun fetchRecentSongs(userId: String) {
         val userRef = db.collection("users").document(userId)

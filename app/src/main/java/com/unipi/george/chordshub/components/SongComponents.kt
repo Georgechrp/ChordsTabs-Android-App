@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import com.unipi.george.chordshub.models.song.SongLine
 
 /*
@@ -31,30 +35,51 @@ import com.unipi.george.chordshub.models.song.SongLine
 
 @Composable
 fun CardsView(
-    songList: List<Pair<String, String>>,
+    songList: List<Pair<String?, String>>,
     homeViewModel: HomeViewModel,
-    selectedTitle: MutableState<String?>
+    selectedTitle: MutableState<String?>,
+    columns: Int = 2,
+    cardHeight: Dp? = null,
+    cardElevation: Dp = 8.dp,
+    cardPadding: Dp = 16.dp,
+    gridPadding: Dp = 16.dp,
+    fontSize: TextUnit = 16.sp,
+    onSongClick: ((songId: String) -> Unit)? = null
 ) {
     val colors = listOf(
-        Color(0xFFEF9A9A), // Light Red
-        Color(0xFF90CAF9), // Light Blue
-        Color(0xFFA5D6A7), // Light Green
-        Color(0xFFFFF59D), // Light Yellow
-        Color(0xFFCE93D8)  // Light Purple
+        Color(0xFFEF9A9A),
+        Color(0xFF90CAF9),
+        Color(0xFFA5D6A7),
+        Color(0xFFFFF59D),
+        Color(0xFFCE93D8)
     )
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Fixed(columns),
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .background(Color.Transparent),
+            .padding(gridPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         itemsIndexed(songList) { index, (title, songId) ->
-            val backgroundColor = colors[index % colors.size] // Κυκλική επιλογή χρώματος
-            SongCard(title, songId, homeViewModel, selectedTitle, backgroundColor)
+            val backgroundColor = colors[index % colors.size]
+            if (title != null) {
+                SongCard(
+                    title = title,
+                    backgroundColor = backgroundColor,
+                    cardHeight = cardHeight,
+                    cardElevation = cardElevation,
+                    cardPadding = cardPadding,
+                    fontSize = fontSize,
+                    onClick = {
+                        Log.d("CardsView", "Selected song ID: $songId")
+                        homeViewModel.selectSong(songId)
+                        selectedTitle.value = title
+                        onSongClick?.invoke(songId)
+                    }
+                )
+            }
         }
     }
 }
@@ -62,93 +87,115 @@ fun CardsView(
 @Composable
 fun SongCard(
     title: String,
-    songId: String,
-    homeViewModel: HomeViewModel,
-    selectedTitle: MutableState<String?>,
-    backgroundColor: Color
+    backgroundColor: Color,
+    cardHeight: Dp? = null,
+    cardElevation: Dp = 8.dp,
+    cardPadding: Dp = 16.dp,
+    fontSize: TextUnit = 16.sp,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f)
+            .then(if (cardHeight != null) Modifier.height(cardHeight) else Modifier.aspectRatio(1f))
             .clip(RoundedCornerShape(16.dp))
-            .clickable {
-                Log.d("HomeScreen", "Selected song ID: $songId")
-                homeViewModel.selectSong(songId)
-                selectedTitle.value = title
-            },
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(cardPadding),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = title,
-                fontSize = 16.sp,
+                fontSize = fontSize,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black // Καλή αντίθεση με τα διαφορετικά background
+                color = Color.Black
             )
         }
     }
 }
+
 
 @Composable
-fun ChordText(
-    songLine: SongLine,
-    onChordClick: (String) -> Unit)
-{
-    val text = songLine.text
-    val chordsInLine = songLine.chords.sortedBy { it.position }
-
-    // Δημιουργούμε το AnnotatedString
-    val annotatedString = buildAnnotatedString {
-        var currentPos = 0
-
-        chordsInLine.forEach { chord ->
-            val relativePosition = chord.position.coerceAtMost(text.length)
-
-            // Προσθήκη κενού χώρου μέχρι τη θέση της συγχορδίας
-            while (currentPos < relativePosition) {
-                append(" ")
-                currentPos++
-            }
-
-            // Προσθήκη Clickable συγχορδίας
-            pushStringAnnotation(tag = "chord", annotation = chord.chord)
-            withStyle(style = SpanStyle(color = Color.Red, fontSize = 18.sp)) {
-                append(chord.chord)
-            }
-            pop()
-
-            currentPos += chord.chord.length + 1
-        }
-
-        // Προσθήκη στίχων μετά τις συγχορδίες
-        append("\n$text")
-    }
-
-    // Χρησιμοποιούμε `ClickableText` για πιο αξιόπιστο χειρισμό των taps
-    ClickableText(
-        text = annotatedString,
-        style = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.Start),
-        modifier = Modifier.fillMaxWidth().padding(4.dp),
-        onClick = { offset ->
-            val clickedAnnotations = annotatedString.getStringAnnotations(
-                tag = "chord",
-                start = offset,
-                end = offset
+fun ArtistCard(
+    name: String,
+    backgroundColor: Color,
+    cardWidth: Dp = 180.dp,
+    cardHeight: Dp = 100.dp,
+    cardElevation: Dp = 8.dp,
+    cardPadding: Dp = 16.dp,
+    fontSize: TextUnit = 16.sp,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(cardWidth)
+            .height(cardHeight)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(cardPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = name,
+                fontSize = fontSize,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black
             )
-
-            if (clickedAnnotations.isNotEmpty()) {
-                onChordClick(clickedAnnotations.first().item)
-            }
         }
-    )
+    }
 }
 
+
+
+@Composable
+fun HorizontalArtistCardsView(
+    artists: List<String>,
+    homeViewModel: HomeViewModel,
+    selectedTitle: MutableState<String?>,
+    cardPadding: Dp = 16.dp,
+    fontSize: TextUnit = 16.sp,
+    onArtistClick: (artist: String) -> Unit
+) {
+    val colors = listOf(
+        Color(0xFFEF9A9A),
+        Color(0xFF90CAF9),
+        Color(0xFFA5D6A7),
+        Color(0xFFFFF59D),
+        Color(0xFFCE93D8)
+    )
+
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = cardPadding),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        itemsIndexed(artists) { index, artist ->
+            val backgroundColor = colors[index % colors.size]
+            ArtistCard(
+                name = artist,
+                backgroundColor = backgroundColor,
+                fontSize = fontSize,
+                onClick = {
+                    homeViewModel.fetchFilteredSongs(artist)
+                    selectedTitle.value = artist
+                    onArtistClick(artist)
+                }
+            )
+        }
+    }
+}

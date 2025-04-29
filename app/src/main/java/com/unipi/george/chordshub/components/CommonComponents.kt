@@ -1,8 +1,11 @@
 package com.unipi.george.chordshub.components
 
+import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,15 +15,18 @@ import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.unipi.george.chordshub.R
-
 /*
 *   Just some methods can be used by any place in the app
 */
@@ -44,57 +50,48 @@ fun SettingsHeads(text: String, settingsViewModel: SettingsViewModel, modifier: 
     )
 }
 
-fun getNewKey(originalKey: String, transpose: Int): String {
-    val sharpNotes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
-    val flatNotes = listOf("C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B")
+@Composable
+fun BlurredBackground(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.6f))
+            .blur(20.dp)
+            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                onClick()
+            }
+    )
 
-    // Αναγνώριση της ρίζας και του υπολοίπου
-    val regex = Regex("^([A-Ga-g#b]+)(.*)$")
-    val matchResult = regex.matchEntire(originalKey) ?: return originalKey
-    val (rootNote, suffix) = matchResult.destructured
-
-    // Προσδιορισμός αν η συγχορδία είναι flat ή sharp
-    val isFlat = rootNote.contains("b")
-    val isSharp = rootNote.contains("#")
-
-    // Εύρεση τρέχοντος index για την ρίζα
-    val currentIndex = if (isFlat) flatNotes.indexOf(rootNote) else sharpNotes.indexOf(rootNote)
-    if (currentIndex == -1) return originalKey // Επιστρέφουμε την αρχική αν δεν βρεθεί
-
-    // Υπολογισμός του νέου index
-    val newIndex = (currentIndex + transpose + 12) % 12
-    val newRootNote = if (isFlat) flatNotes[newIndex] else sharpNotes[newIndex]
-
-    return newRootNote + suffix // Διατήρηση του υπολοίπου της συγχορδίας
 }
 
-// Circular ImageView that can be clicked(used by TopBar)
+
 @Composable
-fun CircularImageViewSmall(
+fun UserProfileImage(
     imageUrl: String?,
+    localImage: Uri? = null,
+    size: Dp = 40.dp,
+    border: Boolean = true,
+    placeholderResId: Int = R.drawable.user_icon,
     onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
-            .size(30.dp)
+            .size(size)
             .clip(CircleShape)
-            .border(2.dp, Color.Gray, CircleShape)
+            .then(if (border) Modifier.border(2.dp, Color.Gray, CircleShape) else Modifier)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        if (imageUrl != null) {
-            Image(
-                painter = rememberAsyncImagePainter(imageUrl),
-                contentDescription = stringResource(R.string.circular_image_description),
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.user_icon),
-                contentDescription = stringResource(R.string.circular_image_description),
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        Image(
+            painter = when {
+                localImage != null -> rememberAsyncImagePainter(localImage)
+                imageUrl != null -> rememberAsyncImagePainter(imageUrl)
+                else -> painterResource(id = placeholderResId)
+            },
+            contentDescription = stringResource(R.string.circular_image_description),
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
     }
 }
 

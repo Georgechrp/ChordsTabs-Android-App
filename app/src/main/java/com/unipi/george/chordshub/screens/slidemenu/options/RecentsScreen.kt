@@ -16,6 +16,7 @@ import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.components.LoadingView
 import com.unipi.george.chordshub.repository.AuthRepository
 import com.unipi.george.chordshub.screens.viewsong.DetailedSongView
+import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 
@@ -30,7 +31,7 @@ fun RecentsScreen(
     val userId = AuthRepository.getUserId()
     var isLoading by remember { mutableStateOf(true) }
     val selectedSongId by homeViewModel.selectedSongId.collectAsState()
-
+    val mainViewModel = remember { MainViewModel() }
     // Fetch recent songs κατά την είσοδο στην οθόνη
     LaunchedEffect(userId) {
         if (userId != null) {
@@ -48,7 +49,7 @@ fun RecentsScreen(
                 homeViewModel.clearSelectedSong()
             },
             navController = navController,
-            mainViewModel = null, // Βάλε αν το χρειάζεσαι
+            mainViewModel = mainViewModel,
             homeViewModel = homeViewModel,
             userViewModel = userViewModel
         )

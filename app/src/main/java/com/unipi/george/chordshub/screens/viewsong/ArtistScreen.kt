@@ -10,25 +10,52 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.material.icons.filled.Info
-
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.components.CardsView
 import com.unipi.george.chordshub.models.song.Song
+import com.unipi.george.chordshub.repository.firestore.SongRepository
 import com.unipi.george.chordshub.utils.ArtistInfo
+import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistScreen(artistName: String, navController: NavController) {
-   // val repository = remember { FirestoreRepository(FirebaseFirestore.getInstance()) }
     var showInfoSheet by remember { mutableStateOf(false) }
     var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
+    val homeViewModel: HomeViewModel = viewModel()
 
-  /*  LaunchedEffect(artistName) {
-        repository.getSongsByArtist(artistName) { fetchedSongs ->
+    val selectedTitle = remember { mutableStateOf<String?>(null) }
+    val selectedSongId = remember { mutableStateOf<String?>(null) }
+
+    val songRepository = remember { SongRepository(FirebaseFirestore.getInstance()) }
+
+    // Fetch songs by artist name
+    LaunchedEffect(artistName) {
+        songRepository.getSongsByArtistName(artistName) { fetchedSongs ->
+            println("Fetched ${fetchedSongs.size} songs by $artistName")
             songs = fetchedSongs
         }
-    }*/
+    }
 
+    // Show DetailedSongView if a song is selected
+    if (selectedSongId.value != null) {
+        DetailedSongView(
+            songId = selectedSongId.value!!,
+            isFullScreenState = false,
+            onBack = { selectedSongId.value = null },
+            navController = navController,
+            mainViewModel = viewModel(),
+            homeViewModel = homeViewModel,
+            userViewModel = viewModel()
+        )
+        return
+    }
+
+    // Scaffold with CardsView
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,16 +79,22 @@ fun ArtistScreen(artistName: String, navController: NavController) {
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(songs) { song ->
-                    Text(text = song.title ?: "Unknown Title", style = MaterialTheme.typography.titleMedium)
-                    // Εδώ μπορείς να βάλεις και SongCard ή άλλο custom Composable για εμφάνιση
-                }
-            }
+            CardsView(
+                songList = songs.mapNotNull { song ->
+                    song.title?.let { title ->
+                        title to (song.title ?: title)
+                    }
+                },
+                homeViewModel = homeViewModel,
+                selectedTitle = selectedTitle,
+                columns = 1,
+                cardHeight = 80.dp,
+                cardElevation = 4.dp,
+                cardPadding = 12.dp,
+                gridPadding = 16.dp,
+                fontSize = 16.sp,
+                onSongClick = { id -> selectedSongId.value = id }
+            )
         }
     }
 
@@ -69,7 +102,6 @@ fun ArtistScreen(artistName: String, navController: NavController) {
         ArtistInfoBottomSheet(artistName) { showInfoSheet = false }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

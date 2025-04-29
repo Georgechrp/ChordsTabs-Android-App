@@ -2,15 +2,23 @@ package com.unipi.george.chordshub.navigation.main
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.unipi.george.chordshub.AppContainer
-import com.unipi.george.chordshub.navigation.auth.AuthFlowNavGraph
+import com.unipi.george.chordshub.navigation.auth.AuthNav
+import com.unipi.george.chordshub.repository.AuthRepository
+import com.unipi.george.chordshub.screens.auth.welcomeuser.WelcomeScreen
 import com.unipi.george.chordshub.ui.theme.ChordsHubTheme
 import com.unipi.george.chordshub.utils.ObserveUserSession
 import com.unipi.george.chordshub.viewmodels.SettingsViewModelFactory
+import com.unipi.george.chordshub.viewmodels.StorageViewModel
 import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
+import kotlinx.coroutines.delay
 
 /*
  *
@@ -31,15 +39,29 @@ fun RootAppEntry(sessionViewModel: SessionViewModel) {
     val darkMode = settingsViewModel.darkMode.value
     val isUserLoggedInState = sessionViewModel.isUserLoggedInState
 
+    val storageViewModel = remember { StorageViewModel() }
+    val imageUrl by storageViewModel.profileImageUrl
+
+    val isLoading = remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(2000) // ή 3000L
+        AuthRepository.getUserId()?.let {
+            storageViewModel.loadProfileImage(it)
+        }
+        isLoading.value = false
+    }
+
+
     ChordsHubTheme(darkTheme = darkMode) {
         val navController = rememberNavController()
 
         ObserveUserSession(sessionViewModel)
 
-        if (isUserLoggedInState.value) {
-            MainScaffold(navController = navController, sessionViewModel = sessionViewModel)
-        } else {
-            AuthFlowNavGraph(navController, isUserLoggedInState)
+        when {
+            isLoading.value -> WelcomeScreen()
+            isUserLoggedInState.value -> MainScaffold(navController, profileImageUrl = imageUrl)
+            else -> AuthNav(navController, isUserLoggedInState)
         }
     }
 }

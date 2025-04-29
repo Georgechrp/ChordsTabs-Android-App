@@ -1,7 +1,8 @@
 package com.unipi.george.chordshub.viewmodels.seconds
 
 import androidx.lifecycle.ViewModel
-import com.unipi.george.chordshub.repository.FirestoreRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.unipi.george.chordshub.repository.firestore.TempPlaylistRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -12,10 +13,8 @@ data class TempPlaylistState(
     val isLoading: Boolean = true
 )
 
-class TempPlaylistViewModel(
-    private val repository: FirestoreRepository
-) : ViewModel() {
-
+class TempPlaylistViewModel(repository: TempPlaylistRepository) : ViewModel() {
+    private val autoCreatePlalylistRepo = TempPlaylistRepository(FirebaseFirestore.getInstance())
     private val _state = MutableStateFlow(TempPlaylistState())
     val state: StateFlow<TempPlaylistState> = _state
 
@@ -35,7 +34,7 @@ class TempPlaylistViewModel(
     fun createPlaylist(userId: String, firstSongId: String) {
         _state.value = _state.value.copy(isLoading = true)
 
-        repository.createTempPlaylist(userId, firstSongId) { playlistId ->
+        autoCreatePlalylistRepo.createTempPlaylist(userId, firstSongId) { playlistId ->
             if (playlistId != null) {
                 _state.value = TempPlaylistState(
                     songIds = listOf(firstSongId),
@@ -51,7 +50,7 @@ class TempPlaylistViewModel(
     fun loadPlaylist(playlistId: String) {
         _state.value = _state.value.copy(isLoading = true)
 
-        repository.getTempPlaylist(playlistId) { playlist ->
+        autoCreatePlalylistRepo.getTempPlaylist(playlistId) { playlist ->
             if (playlist != null) {
                 _state.value = TempPlaylistState(
                     playlistId = playlistId,
@@ -67,7 +66,7 @@ class TempPlaylistViewModel(
 
     fun addSong(songId: String) {
         val playlistId = _state.value.playlistId ?: return
-        repository.addSongToTempPlaylist(playlistId, songId)
+        autoCreatePlalylistRepo.addSongToTempPlaylist(playlistId, songId)
 
         val updatedList = _state.value.songIds + songId
         _state.value = _state.value.copy(songIds = updatedList)
@@ -75,14 +74,14 @@ class TempPlaylistViewModel(
 
     fun playSong(songId: String) {
         val playlistId = _state.value.playlistId ?: return
-        repository.setCurrentSongInTempPlaylist(playlistId, songId)
+        autoCreatePlalylistRepo.setCurrentSongInTempPlaylist(playlistId, songId)
 
         _state.value = _state.value.copy(currentSongId = songId)
     }
 
     fun deletePlaylist() {
         val playlistId = _state.value.playlistId ?: return
-        repository.deleteTempPlaylist(playlistId) { success ->
+        autoCreatePlalylistRepo.deleteTempPlaylist(playlistId) { success ->
             if (success) {
                 _state.value = TempPlaylistState()
             }

@@ -1,48 +1,35 @@
 package com.unipi.george.chordshub.screens.auth.welcomeuser
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import kotlinx.coroutines.delay
-import com.unipi.george.chordshub.viewmodels.user.SessionViewModel
-import com.unipi.george.chordshub.navigation.AppScreens
 
- /*
-*   needs work
- */
+/*
+*   Just a Welcome Screen
+*/
 
 @Composable
-fun WelcomeScreen(
-    navController: NavController,
-    sessionViewModel: SessionViewModel
-) {
-    // Μόλις ξεκινήσει το composable, κάνε delay και πήγαινε στη σωστή οθόνη
-    LaunchedEffect(Unit) {
-        delay(2000L) // 2 δευτερόλεπτα splash
-        if (sessionViewModel.isUserLoggedInState.value) {
-            navController.navigate(AppScreens.Main.route) {
-                popUpTo(AppScreens.Welcome.route) { inclusive = true }
-            }
-        } else {
-            navController.navigate(AppScreens.Auth.route) {
-                popUpTo(AppScreens.Welcome.route) { inclusive = true }
-            }
-        }
-    }
-
-    // UI εμφάνισης του welcome
+fun WelcomeScreen() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("🎸 Chords & Tabs", style = MaterialTheme.typography.headlineLarge)
+            Text(
+                text = "Welcome to ChordHub",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(16.dp))
             CircularProgressIndicator()
         }
     }
 }
+

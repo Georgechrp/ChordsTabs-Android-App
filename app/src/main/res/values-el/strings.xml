@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ChordsTabs</string>
+    <string name="app_name">ChordHub</string>
 
     <!-- LoginScreen -->
     <string name="email">Email</string>
@@ -68,6 +68,10 @@
     <string name="delete_playlist_text">🗑️ Διαγραφή Playlist</string>
     <string name="give_a_name_to_playlist">Δώσε όνομα στη λίστα:</string>
     <string name="new_name_text">Νέο όνομα</string>
+    <string name="Library_text">Η Βιβλιοθήκη σου</string>
+    <string name="Create_a_playlist_text">Δημιουργία λίστας</string>
+    <string name="name_of_playlist_text">Όνομα playlist</string>
+
 
     <!-- More -->
     <string name="X_Text">❌</string>
@@ -75,4 +79,11 @@
 
     <!-- HomeScreene -->
     <string name="unfortunately_text">Δυστυχώς, δεν υπάρχουν αποτελέσματα για αυτο το φίλτρο αυτη την στιγμή</string>
+
+
+    <string name="search_text">Αναζήτηση</string>"
+    <string name="Discover_something_new_text">Ανακαλύψτε κάτι νέο</string>
+    <string name="Are_u_looking_for_something_text">Ψάχνεις κάτι;</string>
+
+    <string name="create_text">Δημιουργία</string>
 </resources>

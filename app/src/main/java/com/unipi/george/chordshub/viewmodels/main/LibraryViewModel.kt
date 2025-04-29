@@ -4,13 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.unipi.george.chordshub.repository.FirestoreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.unipi.george.chordshub.repository.firestore.PlaylistRepository
+
 
 class LibraryViewModel : ViewModel() {
-    private val repository = FirestoreRepository(FirebaseFirestore.getInstance())
+    private val playlistRepo = PlaylistRepository(FirebaseFirestore.getInstance())
     private val auth = FirebaseAuth.getInstance()
     private val userId = auth.currentUser?.uid
 
@@ -24,7 +25,7 @@ class LibraryViewModel : ViewModel() {
     private fun loadLibraryData() {
         userId?.let {
             viewModelScope.launch {
-                repository.getUserPlaylistsWithSongs(it) { userPlaylists ->
+                playlistRepo.getUserPlaylistsWithSongs(it) { userPlaylists ->
                     _playlists.value = userPlaylists
                 }
             }
@@ -33,7 +34,7 @@ class LibraryViewModel : ViewModel() {
 
     fun renamePlaylist(oldName: String, newName: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
-            repository.renamePlaylist(id, oldName, newName) { success ->
+            playlistRepo.renamePlaylist(id, oldName, newName) { success ->
                 if (success) loadLibraryData()
                 onComplete(success)
             }
@@ -43,7 +44,7 @@ class LibraryViewModel : ViewModel() {
 
     fun createPlaylist(playlistName: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
-            repository.createPlaylist(id, playlistName) { success ->
+            playlistRepo.createPlaylist(id, playlistName) { success ->
                 if (success) {
                     loadLibraryData()
                 }
@@ -54,7 +55,7 @@ class LibraryViewModel : ViewModel() {
 
     fun addSongToPlaylist(playlistName: String, songTitle: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
-            repository.addSongToPlaylist(id, playlistName, songTitle) { success ->
+            playlistRepo.addSongToPlaylist(id, playlistName, songTitle) { success ->
                 if (success) {
                     loadLibraryData()
                 }
@@ -65,7 +66,7 @@ class LibraryViewModel : ViewModel() {
 
     fun removeSongFromPlaylist(playlistName: String, songTitle: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
-            repository.removeSongFromPlaylist(id, playlistName, songTitle) { success ->
+            playlistRepo.removeSongFromPlaylist(id, playlistName, songTitle) { success ->
                 if (success) {
                     loadLibraryData()
                 }
@@ -76,7 +77,7 @@ class LibraryViewModel : ViewModel() {
 
     fun deletePlaylist(playlistName: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
-            repository.deletePlaylist(id, playlistName) { success ->
+            playlistRepo.deletePlaylist(id, playlistName) { success ->
                 if (success) {
                     loadLibraryData()
                 }
