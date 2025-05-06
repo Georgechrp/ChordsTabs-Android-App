@@ -5,6 +5,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
+import com.unipi.george.chordshub.components.FilterRow
 import com.unipi.george.chordshub.viewmodels.main.LibraryViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
 
@@ -34,6 +39,9 @@ fun LibraryScreen(navController: NavController, mainViewModel: MainViewModel, on
     var showRenameDialog by remember { mutableStateOf(false) }
     var newPlaylistName by remember { mutableStateOf("") }
     val profileImage by mainViewModel.profileImageUrl.collectAsState()
+    //var selectedFilter by remember { mutableStateOf("All") }
+    val selectedFilter by viewModel.selectedFilter.collectAsState()
+
 
 
     LaunchedEffect(Unit) {
@@ -41,13 +49,29 @@ fun LibraryScreen(navController: NavController, mainViewModel: MainViewModel, on
             Text(stringResource(R.string.Library_text), style = MaterialTheme.typography.headlineSmall)
         }
     }
+    LaunchedEffect(Unit) {
+        mainViewModel.setTopBarContent {
+            Text(stringResource(R.string.Library_text), style = MaterialTheme.typography.headlineSmall)
+        }
+        viewModel.fetchFilteredPlaylists("All")
+    }
+
 
     Box(modifier = Modifier.fillMaxSize().padding(top = 56.dp)) {
         Column(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            FilterRow(
+                selectedFilter = selectedFilter,
+                onFilterChange = { viewModel.fetchFilteredPlaylists(it) },
+                filters = listOf("All", "Artists", "Playlists", "Downloaded")
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+
             if (playlists.isEmpty()) {
                 Text("Δεν υπάρχουν playlists ακόμα.")
             } else {
@@ -65,28 +89,42 @@ fun LibraryScreen(navController: NavController, mainViewModel: MainViewModel, on
                                     showBottomSheet.value = true
                                 }
                             )
-                    )
-                    {
+                    ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text(playlist, style = MaterialTheme.typography.bodyLarge)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(playlist, style = MaterialTheme.typography.bodyLarge)
 
-                            songs.forEach { song ->
+                                IconButton(onClick = {
+                                    selectedPlaylist = playlist
+                                    showBottomSheet.value = true
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "More Options"
+                                    )
+                                }
+                            }
+
+                            /*songs.forEach { song ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text(song, style = MaterialTheme.typography.bodyMedium)
-                                    TextButton(onClick = {
+                                    //Text(song, style = MaterialTheme.typography.bodyMedium)
+                                    *//*TextButton(onClick = {
                                         viewModel.removeSongFromPlaylist(playlist, song) {}
                                     }) {
                                         Text("❌")
-                                    }
+                                    }*//*
                                 }
-                            }
-
-
+                            }*/
                         }
                     }
+
                 }
             }
 

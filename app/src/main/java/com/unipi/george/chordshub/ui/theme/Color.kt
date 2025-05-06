@@ -42,6 +42,17 @@ val OnSurfaceDark = Color(0xFFFFFFFF)
 val Success80 = Color(0xFFC8E6C9)
 val Success40 = Color(0xFF388E3C)
 
+/*
 val filterColor = Color(0xFFD32F2F) // Κόκκινο (Primary)
 val checkedFilter = Color(0xFF424242) //Color(0xFFFFEBEE) // Απαλό ροζ
 
+*/
+/*
+val filterColor = Color(0xFFE0E0E0)
+val checkedFilter = Color(0xFF1976D2) //Color(0xFFFFEBEE)
+*/
+/*
+val filterColor = Color(0xFFFFF8E1)
+val checkedFilter = Color(0xFFFFA000) //Color(0xFFFFEBEE)*/
+val filterColor = Color(0xFF2E2E2E)
+val checkedFilter = Color(0xFF1DB954)

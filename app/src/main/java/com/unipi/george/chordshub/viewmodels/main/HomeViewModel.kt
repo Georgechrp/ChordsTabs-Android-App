@@ -32,6 +32,7 @@ class HomeViewModel : ViewModel() {
 
     fun getAllArtists() {
         _fetchArtists.value = "trigger"
+
     }
     fun resetFetchArtists() {
         _fetchArtists.value = null
@@ -52,6 +53,7 @@ class HomeViewModel : ViewModel() {
         songRepo.getFilteredSongs(filter) { titlesAndIds ->
             _songList.value = titlesAndIds
         }
+
     }
     fun selectSong(songId: String) {
         Log.d("HomeViewModel", "Setting selectedSongId: $songId")

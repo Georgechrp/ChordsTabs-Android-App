@@ -18,15 +18,28 @@ class LibraryViewModel : ViewModel() {
     private val _playlists = MutableStateFlow<Map<String, List<String>>>(emptyMap())
     val playlists: StateFlow<Map<String, List<String>>> = _playlists
 
+    private val _selectedFilter = MutableStateFlow("All")
+    val selectedFilter: StateFlow<String> = _selectedFilter
+
     init {
-        loadLibraryData()
+        fetchFilteredPlaylists("All")
     }
 
-    private fun loadLibraryData() {
+    fun fetchFilteredPlaylists(filter: String) {
+        _selectedFilter.value = filter
         userId?.let {
             viewModelScope.launch {
                 playlistRepo.getUserPlaylistsWithSongs(it) { userPlaylists ->
-                    _playlists.value = userPlaylists
+                    val filtered = when (filter) {
+                        "All" -> userPlaylists
+                        "Playlists" -> userPlaylists.filterKeys { name ->
+                            !name.startsWith("artist:") && !name.startsWith("downloaded:")
+                        }
+                        "Artists" -> userPlaylists.filterKeys { it.startsWith("artist:") }
+                        "Downloaded" -> userPlaylists.filterKeys { it.startsWith("downloaded:") }
+                        else -> userPlaylists
+                    }
+                    _playlists.value = filtered
                 }
             }
         }
@@ -35,19 +48,16 @@ class LibraryViewModel : ViewModel() {
     fun renamePlaylist(oldName: String, newName: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
             playlistRepo.renamePlaylist(id, oldName, newName) { success ->
-                if (success) loadLibraryData()
+                if (success) fetchFilteredPlaylists(_selectedFilter.value)
                 onComplete(success)
             }
         }
     }
 
-
     fun createPlaylist(playlistName: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
             playlistRepo.createPlaylist(id, playlistName) { success ->
-                if (success) {
-                    loadLibraryData()
-                }
+                if (success) fetchFilteredPlaylists(_selectedFilter.value)
                 onComplete(success)
             }
         }
@@ -56,9 +66,7 @@ class LibraryViewModel : ViewModel() {
     fun addSongToPlaylist(playlistName: String, songTitle: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
             playlistRepo.addSongToPlaylist(id, playlistName, songTitle) { success ->
-                if (success) {
-                    loadLibraryData()
-                }
+                if (success) fetchFilteredPlaylists(_selectedFilter.value)
                 onComplete(success)
             }
         }
@@ -67,9 +75,7 @@ class LibraryViewModel : ViewModel() {
     fun removeSongFromPlaylist(playlistName: String, songTitle: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
             playlistRepo.removeSongFromPlaylist(id, playlistName, songTitle) { success ->
-                if (success) {
-                    loadLibraryData()
-                }
+                if (success) fetchFilteredPlaylists(_selectedFilter.value)
                 onComplete(success)
             }
         }
@@ -78,11 +84,10 @@ class LibraryViewModel : ViewModel() {
     fun deletePlaylist(playlistName: String, onComplete: (Boolean) -> Unit) {
         userId?.let { id ->
             playlistRepo.deletePlaylist(id, playlistName) { success ->
-                if (success) {
-                    loadLibraryData()
-                }
+                if (success) fetchFilteredPlaylists(_selectedFilter.value)
                 onComplete(success)
             }
         }
     }
 }
+

@@ -167,7 +167,7 @@ fun HorizontalArtistCardsView(
     homeViewModel: HomeViewModel,
     selectedTitle: MutableState<String?>,
     cardPadding: Dp = 16.dp,
-    fontSize: TextUnit = 16.sp,
+    fontSize: TextUnit = 14.sp, // λίγο πιο μικρό
     onArtistClick: (artist: String) -> Unit
 ) {
     val colors = listOf(
@@ -178,22 +178,73 @@ fun HorizontalArtistCardsView(
         Color(0xFFCE93D8)
     )
 
-    LazyRow(
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Spacer(modifier = Modifier.height(12.dp)) // απόσταση από πάνω
+
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = cardPadding),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            itemsIndexed(artists) { index, artist ->
+                val backgroundColor = colors[index % colors.size]
+                ArtistCard(
+                    name = artist,
+                    backgroundColor = backgroundColor,
+                    cardWidth = 120.dp,
+                    cardHeight = 60.dp,
+                    fontSize = fontSize,
+                    onClick = {
+                        homeViewModel.fetchFilteredSongs(artist)
+                        selectedTitle.value = artist
+                        onArtistClick(artist)
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun ArtistGridView(
+    artistList: List<String>,
+    homeViewModel: HomeViewModel,
+    selectedTitle: MutableState<String?>,
+    columns: Int = 2,
+    cardHeight: Dp = 80.dp,
+    fontSize: TextUnit = 16.sp,
+    onArtistClick: ((artist: String) -> Unit)? = null
+) {
+    val colors = listOf(
+        Color(0xFFEF9A9A),
+        Color(0xFF90CAF9),
+        Color(0xFFA5D6A7),
+        Color(0xFFFFF59D),
+        Color(0xFFCE93D8)
+    )
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = cardPadding),
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        itemsIndexed(artists) { index, artist ->
+        itemsIndexed(artistList) { index, artist ->
             val backgroundColor = colors[index % colors.size]
             ArtistCard(
                 name = artist,
                 backgroundColor = backgroundColor,
                 fontSize = fontSize,
+                cardHeight = cardHeight,
                 onClick = {
                     homeViewModel.fetchFilteredSongs(artist)
                     selectedTitle.value = artist
-                    onArtistClick(artist)
+                    onArtistClick?.invoke(artist)
                 }
             )
         }

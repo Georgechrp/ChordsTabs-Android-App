@@ -90,7 +90,7 @@ fun FilterButton(
 fun FilterRow(
     selectedFilter: String,
     onFilterChange: (String) -> Unit,
-    filters: List<String> = listOf("All", "Pop", "Artists", "Music", "Downloads")
+    filters: List<String> = listOf("All", "Artists", "Downloads")
 ) {
     val scrollState = rememberScrollState()
 

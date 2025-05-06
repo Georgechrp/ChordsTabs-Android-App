@@ -31,11 +31,11 @@ import com.unipi.george.chordshub.viewmodels.MainViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 import kotlin.math.roundToInt
 import com.unipi.george.chordshub.components.CardsView
+import com.unipi.george.chordshub.components.HorizontalArtistCardsView
 import com.unipi.george.chordshub.components.LoadingView
 import com.unipi.george.chordshub.repository.firestore.SongRepository
 import kotlinx.coroutines.delay
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel,
@@ -56,27 +56,43 @@ fun HomeScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     var topBarOffset by rememberSaveable { mutableFloatStateOf(0f) }
     val profileImage by mainViewModel.profileImageUrl.collectAsState()
-    //val genreFilters = listOf("All", "Pop", "Hip-Hop", "R&B", "Reggae")
-    //val moodFilters = listOf("Happy", "Sad", "Chill", "Energetic")
     var showNoResults by remember { mutableStateOf(false) }
 
-    // Nested Scroll για σωστό collapsing behavior
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val newOffset =
-                    (topBarOffset + available.y).coerceIn(-30f, 0f) // TopBar moves up to -dp
+                val newOffset = (topBarOffset + available.y).coerceIn(-30f, 0f)
                 topBarOffset = newOffset
                 return Offset.Zero
             }
         }
     }
-    LaunchedEffect(navBackStackEntry) {
-        homeViewModel.fetchFilteredSongs("All")
+
+    LaunchedEffect(Unit) {
+        // Μόνο στην πρώτη εμφάνιση της οθόνης
+        selectedFilter = "All"
     }
+
+
     LaunchedEffect(selectedFilter) {
-        homeViewModel.fetchFilteredSongs(selectedFilter)
+        when (selectedFilter) {
+            "Artists" -> {
+                artistMode = true
+                homeViewModel.getAllArtists()
+            }
+            "All" -> {
+                artistMode = false
+                homeViewModel.fetchFilteredSongs("All")
+                homeViewModel.getAllArtists()
+            }
+            else -> {
+                artistMode = false
+                homeViewModel.fetchFilteredSongs(selectedFilter)
+            }
+        }
     }
+
+
     LaunchedEffect(songList, selectedFilter) {
         showNoResults = false
         if (songList.isEmpty()) {
@@ -86,31 +102,37 @@ fun HomeScreen(
             }
         }
     }
+
     BackHandler(enabled = isMenuOpen) {
         mainViewModel.setMenuOpen(false)
     }
 
-    LaunchedEffect(Unit) {
-        mainViewModel.setTopBarContent {
-            FilterRow(
-                selectedFilter = selectedFilter,
-                onFilterChange = { selectedFilter = it }
-            )
+    LaunchedEffect(selectedSongId) {
+        if (selectedSongId == null) {
+            mainViewModel.setTopBarContent {
+                FilterRow(
+                    selectedFilter = selectedFilter,
+                    onFilterChange = {
+                        selectedFilter = it
+                    }
+                )
+            }
+        } else {
+            mainViewModel.setTopBarContent {}
         }
     }
+
     val fetchArtists by homeViewModel.fetchArtists.collectAsState()
     val songRepo = remember { SongRepository(FirebaseFirestore.getInstance()) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(fetchArtists) {
         if (fetchArtists != null) {
             songRepo.getAllArtists { fetched ->
                 artistList = fetched
-                artistMode = true
             }
             homeViewModel.resetFetchArtists()
         }
     }
-
 
     Box(
         modifier = Modifier
@@ -120,20 +142,15 @@ fun HomeScreen(
             .background(Color.Transparent)
     ) {
         Column {
-            // Top bar μόνο όταν δεν είμαστε στο song view
             if (selectedSongId == null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .offset { IntOffset(0, topBarOffset.roundToInt()) }
                         .zIndex(1f)
-
-                ) {
-
-                }
+                ) {}
             }
 
-            // Main Content
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
                     selectedSongId == null && songList.isEmpty() && showNoResults -> {
@@ -151,26 +168,48 @@ fun HomeScreen(
 
                     selectedSongId == null && songList.isEmpty() -> LoadingView()
 
-                    selectedSongId == null -> if (artistMode) {
-                        val artistPairs = artistList.map { artist -> artist to "artist:$artist" }
-                        CardsView(
-                            songList = artistPairs,
-                            homeViewModel = homeViewModel,
-                            selectedTitle = selectedTitle,
-                            columns = 3,
-                            cardHeight = 100.dp,
-                            fontSize = 12.sp,
-                            onSongClick = { artistTag ->
-                                val artist = artistTag.removePrefix("artist:")
-                                homeViewModel.fetchFilteredSongs(artist)
-                                selectedFilter = artist
-                                artistMode = false
-                            }
-                        )
-                    } else {
-                        CardsView(songList, homeViewModel, selectedTitle)
-                    }
+                    selectedSongId == null -> {
+                        if (artistMode) {
+                            CardsView(
+                                songList = artistList.map { it to "artist:$it" },
+                                homeViewModel = homeViewModel,
+                                selectedTitle = selectedTitle,
+                                columns = 2,
+                                cardHeight = 80.dp,
+                                fontSize = 13.sp,
+                                onSongClick = { artistTag ->
+                                    val artist = artistTag.removePrefix("artist:")
+                                    navController.navigate("artist/${Uri.encode(artist)}")
+                                    artistMode = false
+                                    artistList = emptyList()
+                                }
+                            )
+                        } else {
+                            Column {
+                                if (selectedFilter == "All" ) {
+                                    CardsView(
+                                        songList = artistList.map { it to "artist:$it" },
+                                        homeViewModel = homeViewModel,
+                                        selectedTitle = selectedTitle,
+                                        columns = 2,
+                                        cardHeight = 80.dp,
+                                        fontSize = 13.sp,
+                                        onSongClick = { artistTag ->
+                                            val artist = artistTag.removePrefix("artist:")
+                                            navController.navigate("artist/${Uri.encode(artist)}")
+                                        }
+                                    )
+                                }
 
+                                CardsView(
+                                    songList = songList,
+                                    homeViewModel = homeViewModel,
+                                    selectedTitle = selectedTitle
+                                )
+                            }
+                        }
+
+                    }
 
                     else -> DetailedSongView(
                         songId = selectedSongId!!,
@@ -189,6 +228,7 @@ fun HomeScreen(
         }
     }
 }
+
 
 
 
