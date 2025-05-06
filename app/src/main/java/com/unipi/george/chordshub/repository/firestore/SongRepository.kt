@@ -204,7 +204,7 @@ class SongRepository(private val db: FirebaseFirestore) {
             .get()
             .addOnSuccessListener { result ->
                 println("✅ Fetched ${result.size()} documents for artist: $artistName")
-                val songs = result.mapNotNull {
+                val songs =  result.mapNotNull {
                     try {
                         it.toObject(FirestoreSongDTO::class.java).toSong()
                     } catch (e: Exception) {
@@ -235,5 +235,22 @@ class SongRepository(private val db: FirebaseFirestore) {
                 callback(emptyList())
             }
     }
+
+
+    suspend fun getSongByTitle(title: String): Song? {
+        return try {
+            val querySnapshot = db.collection("songs")
+                .whereEqualTo("title", title)
+                .get()
+                .await()
+
+            val document = querySnapshot.documents.firstOrNull()
+            document?.toObject(FirestoreSongDTO::class.java)?.toSong()
+        } catch (e: Exception) {
+            Log.e("Firestore", "❌ Error fetching song by title: ${e.message}")
+            null
+        }
+    }
+
 
 }

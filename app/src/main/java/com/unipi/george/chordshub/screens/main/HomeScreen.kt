@@ -75,22 +75,19 @@ fun HomeScreen(
 
 
     LaunchedEffect(selectedFilter) {
+        artistMode = selectedFilter == "Artists"
+
         when (selectedFilter) {
             "Artists" -> {
-                artistMode = true
-                homeViewModel.getAllArtists()
-            }
-            "All" -> {
-                artistMode = false
-                homeViewModel.fetchFilteredSongs("All")
                 homeViewModel.getAllArtists()
             }
             else -> {
-                artistMode = false
                 homeViewModel.fetchFilteredSongs(selectedFilter)
+                homeViewModel.getAllArtists() // προαιρετικό
             }
         }
     }
+
 
 
     LaunchedEffect(songList, selectedFilter) {
@@ -154,16 +151,7 @@ fun HomeScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
                     selectedSongId == null && songList.isEmpty() && showNoResults -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.unfortunately_text),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
+                        // δείξε μήνυμα
                     }
 
                     selectedSongId == null && songList.isEmpty() -> LoadingView()
@@ -185,33 +173,15 @@ fun HomeScreen(
                                 }
                             )
                         } else {
-                            Column {
-                                if (selectedFilter == "All" ) {
-                                    CardsView(
-                                        songList = artistList.map { it to "artist:$it" },
-                                        homeViewModel = homeViewModel,
-                                        selectedTitle = selectedTitle,
-                                        columns = 2,
-                                        cardHeight = 80.dp,
-                                        fontSize = 13.sp,
-                                        onSongClick = { artistTag ->
-                                            val artist = artistTag.removePrefix("artist:")
-                                            navController.navigate("artist/${Uri.encode(artist)}")
-                                        }
-                                    )
-                                }
-
-                                CardsView(
-                                    songList = songList,
-                                    homeViewModel = homeViewModel,
-                                    selectedTitle = selectedTitle
-                                )
-                            }
+                            CardsView(
+                                songList = songList,
+                                homeViewModel = homeViewModel,
+                                selectedTitle = selectedTitle
+                            )
                         }
-
                     }
 
-                    else -> DetailedSongView(
+                    else -> {DetailedSongView(
                         songId = selectedSongId!!,
                         isFullScreenState = isFullScreenState,
                         onBack = {
@@ -223,7 +193,9 @@ fun HomeScreen(
                         homeViewModel = homeViewModel,
                         userViewModel = userViewModel
                     )
+                    }
                 }
+
             }
         }
     }

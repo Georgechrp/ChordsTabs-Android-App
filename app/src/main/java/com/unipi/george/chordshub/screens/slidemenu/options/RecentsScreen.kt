@@ -2,6 +2,8 @@ package com.unipi.george.chordshub.screens.slidemenu.options
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -65,6 +67,7 @@ fun RecentsScreen(
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Πίσω")
                     }
                 }
+
             )
         }
     ) { paddingValues ->
@@ -84,22 +87,32 @@ fun RecentsScreen(
                 }
 
                 else -> {
-                    recentSongs.forEach { song ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                                .clickable {
-                                    homeViewModel.selectSong(song)
-                                },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                        ) {
-                            Text(
-                                text = song,
-                                modifier = Modifier.padding(16.dp),
-                                fontSize = 18.sp
-                            )
+                    Text(
+                        text = "Τα τελευταία 10 τραγούδια που είδες",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+
+                    LazyColumn(
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    )  {
+                        items(recentSongs.asReversed()) { song ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                                    .clickable {
+                                        homeViewModel.selectSong(song)
+                                    },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Text(
+                                    text = song,
+                                    modifier = Modifier.padding(16.dp),
+                                    fontSize = 18.sp
+                                )
+                            }
                         }
                     }
                 }

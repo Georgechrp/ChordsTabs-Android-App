@@ -60,7 +60,7 @@ class UserViewModel : ViewModel() {
 
                 // Αν το τραγούδι υπάρχει ήδη, το αφαιρούμε πριν το προσθέσουμε ξανά (ώστε να πάει στην αρχή)
                 val updatedSongs = (listOf(songTitle) + recentSongs.filter { it != songTitle })
-                    .take(8) // Διατηρούμε μόνο τις τελευταίες 8 καταχωρήσεις
+                    .take(10) // Διατηρούμε μόνο τις τελευταίες 8 καταχωρήσεις
 
                 userRef.update("recentSongs", updatedSongs)
                     .addOnSuccessListener {

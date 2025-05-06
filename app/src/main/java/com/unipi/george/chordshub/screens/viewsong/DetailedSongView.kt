@@ -122,13 +122,25 @@ fun DetailedSongView(
 
         Log.d("TransposeTest", "Loaded transpose value: $savedTranspose for songId: $songId")
 
-        val songData = songRepo.getSongDataAsync(songId)
+        var songData = songRepo.getSongDataAsync(songId)
+        if (songData == null) {
+            songData = songRepo.getSongByTitle(songId)
+        }
+
+        if (songData == null) {
+            Log.e("DetailedSongView", "❌ Song not found. Triggering back.")
+            onBack()  // <-- Αυτό επιστρέφει πίσω αν δεν βρέθηκε τραγούδι
+            return@LaunchedEffect
+        }
+
         songState.value = songData
 
         userId?.let { id ->
-            userViewModel.addRecentSong(id, songData?.title ?: "Untitled")
+            userViewModel.addRecentSong(id, songData.title ?: "Untitled")
         }
     }
+
+
 
 
     fun applyTranspose() {

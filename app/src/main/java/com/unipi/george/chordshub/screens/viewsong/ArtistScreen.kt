@@ -33,13 +33,15 @@ fun ArtistScreen(artistName: String, navController: NavController) {
 
     val songRepository = remember { SongRepository(FirebaseFirestore.getInstance()) }
 
-    // Fetch songs by artist name
+
     LaunchedEffect(artistName) {
+        homeViewModel.clearSelectedSong()
         songRepository.getSongsByArtistName(artistName) { fetchedSongs ->
-            println("Fetched ${fetchedSongs.size} songs by $artistName")
             songs = fetchedSongs
         }
     }
+
+
 
     // Show DetailedSongView if a song is selected
     if (selectedSongId.value != null) {
@@ -81,9 +83,8 @@ fun ArtistScreen(artistName: String, navController: NavController) {
         ) {
             CardsView(
                 songList = songs.mapNotNull { song ->
-                    song.title?.let { title ->
-                        title to (song.title ?: title)
-                    }
+                    val title = song.title
+                    if (title != null) title to title else null
                 },
                 homeViewModel = homeViewModel,
                 selectedTitle = selectedTitle,
@@ -93,8 +94,11 @@ fun ArtistScreen(artistName: String, navController: NavController) {
                 cardPadding = 12.dp,
                 gridPadding = 16.dp,
                 fontSize = 16.sp,
-                onSongClick = { id -> selectedSongId.value = id }
+                onSongClick = { clickedTitle ->
+                    selectedSongId.value = clickedTitle
+                }
             )
+
         }
     }
 
