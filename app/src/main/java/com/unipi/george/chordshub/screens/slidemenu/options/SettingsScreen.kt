@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,12 +22,19 @@ import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.viewmodels.user.SettingsViewModel
 import com.unipi.george.chordshub.components.SettingsHeads
+import android.content.Context
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalContext
+import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController, settingsViewModel: SettingsViewModel) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     Scaffold(
-        topBar = { SettingsTopBar(navController) }
+        topBar = { SettingsTopBar(navController) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -43,6 +51,7 @@ fun SettingsScreen(navController: NavController, settingsViewModel: SettingsView
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsTopBar(navController: NavController) {
@@ -58,39 +67,83 @@ fun SettingsTopBar(navController: NavController) {
 
 @Composable
 fun DarkModeToggle(settingsViewModel: SettingsViewModel) {
+    var showDialog by remember { mutableStateOf(false) }
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         SettingsHeads("Dark Mode", settingsViewModel)
         Spacer(modifier = Modifier.weight(1f))
         Switch(
             checked = settingsViewModel.darkMode.value,
-            onCheckedChange = { settingsViewModel.toggleDarkMode() }
+            onCheckedChange = {
+                settingsViewModel.toggleDarkMode()
+                showDialog = true
+            }
         )
     }
     Divider(modifier = Modifier.padding(vertical = 4.dp))
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("ΟΚ")
+                }
+            },
+            title = { Text("Αλλαγή Θέματος") },
+            text = { Text("Απαιτείται επανεκκίνηση της εφαρμογής για να εφαρμοστεί η αλλαγή.") }
+        )
+    }
 }
+
 
 
 @Composable
 fun LanguageSelection(settingsViewModel: SettingsViewModel) {
+    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+
     SettingsHeads("Γλώσσα", settingsViewModel)
+
     Row {
         Button(
-            onClick = { settingsViewModel.changeLanguage("greek") },
+            onClick = {
+                settingsViewModel.changeLanguage("el")
+                updateLocale(context, "el")
+                showDialog = true
+            },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
         ) {
             Text("Ελληνικά", color = Color.White)
         }
         Spacer(modifier = Modifier.width(8.dp))
         Button(
-            onClick = { settingsViewModel.changeLanguage("english") },
+            onClick = {
+                settingsViewModel.changeLanguage("en")
+                updateLocale(context, "en")
+                showDialog = true
+            },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
         ) {
             Text("English", color = Color.White)
         }
     }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("ΟΚ")
+                }
+            },
+            title = { Text("Αλλαγή Γλώσσας") },
+            text = { Text("Η αλλαγή γλώσσας θα εφαρμοστεί μετά από επανεκκίνηση της εφαρμογής.") }
+        )
+    }
+
     Divider(modifier = Modifier.padding(vertical = 4.dp))
 }
-
 
 @Composable
 fun FontSizeSelection(settingsViewModel: SettingsViewModel) {
@@ -107,24 +160,23 @@ fun FontSizeSelection(settingsViewModel: SettingsViewModel) {
             valueRange = 12f..24f,
             modifier = Modifier.weight(1f)
         )
-        IconButton(onClick = { settingsViewModel.changeFontSize(tempFontSize) }) {
-            Icon(Icons.Filled.Save, contentDescription = "Αποθήκευση Μεγέθους Γραμματοσειράς")
-        }
+
     }
     Text(
         text = sampleText,
         style = TextStyle(fontSize = tempFontSize.sp)
     )
+    IconButton(onClick = { settingsViewModel.changeFontSize(tempFontSize) }) {
+        Icon(Icons.Filled.Save, contentDescription = "Αποθήκευση Μεγέθους Γραμματοσειράς")
+    }
 }
 
-/*
 fun updateLocale(context: Context, language: String) {
     val locale = Locale(language)
     Locale.setDefault(locale)
 
-    val config = Configuration()
+    val config = context.resources.configuration
     config.setLocale(locale)
 
     context.resources.updateConfiguration(config, context.resources.displayMetrics)
 }
-*/
