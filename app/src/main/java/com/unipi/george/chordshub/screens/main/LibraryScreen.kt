@@ -5,6 +5,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -14,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -21,6 +24,7 @@ import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.components.FilterRow
 import com.unipi.george.chordshub.viewmodels.main.LibraryViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
+import com.unipi.george.chordshub.viewmodels.main.SearchViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +46,18 @@ fun LibraryScreen(navController: NavController, mainViewModel: MainViewModel, on
     //var selectedFilter by remember { mutableStateOf("All") }
     val selectedFilter by viewModel.selectedFilter.collectAsState()
 
+
+    val searchViewModel: SearchViewModel = viewModel()
+    val searchText = remember { mutableStateOf(TextFieldValue("")) }
+    val searchResults by searchViewModel.searchResults.collectAsState()
+
+    LaunchedEffect(searchText.value.text) {
+        if (searchText.value.text.isBlank()) {
+            searchViewModel.clearSearchResults()
+        } else {
+            searchViewModel.searchSongs(searchText.value.text)
+        }
+    }
 
 
     LaunchedEffect(Unit) {
@@ -206,37 +222,51 @@ fun LibraryScreen(navController: NavController, mainViewModel: MainViewModel, on
         )
     }
 
-    // Διάλογος για προσθήκη τραγουδιού σε playlist
-    if (showAddSongDialog) {
+    if (showAddSongDialog && selectedPlaylist != null) {
         AlertDialog(
             onDismissRequest = { showAddSongDialog = false },
-            title = { Text("Προσθήκη Τραγουδιού") },
+            title = { Text("Αναζήτηση Τραγουδιού") },
             text = {
-                Column {
-                    Text("Δώσε το όνομα του τραγουδιού:")
-                    OutlinedTextField(
-                        value = songTitle,
-                        onValueChange = { songTitle = it },
-                        label = { Text("Όνομα Τραγουδιού") }
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    SearchBar(
+                        searchText = searchText.value,
+                        onSearchTextChange = { searchText.value = it },
+                        viewModel = searchViewModel
                     )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (songTitle.isNotBlank() && selectedPlaylist != null) {
-                        viewModel.addSongToPlaylist(selectedPlaylist!!, songTitle) { success ->
-                            if (success) {
-                                showAddSongDialog = false
-                                songTitle = ""
-                            }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyColumn {
+                        items(searchResults) { song ->
+                            ListItem(
+                                headlineContent = { Text(song.first) },
+                                supportingContent = {
+                                    Text("Καλλιτέχνης: ${song.second}\n🔍 ${song.third}")
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        viewModel.addSongToPlaylist(
+                                            selectedPlaylist!!,
+                                            song.second
+                                        ) { success ->
+                                            if (success) {
+                                                showAddSongDialog = false
+                                                searchText.value = TextFieldValue("")
+                                                searchViewModel.clearSearchResults()
+                                            }
+                                        }
+                                    }
+                            )
                         }
                     }
-                }) {
-                    Text("Προσθήκη")
                 }
             },
+            confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showAddSongDialog = false }) {
+                TextButton(onClick = {
+                    showAddSongDialog = false
+                    searchText.value = TextFieldValue("")
+                    searchViewModel.clearSearchResults()
+                }) {
                     Text(stringResource(R.string.cancel_button_text))
                 }
             }
