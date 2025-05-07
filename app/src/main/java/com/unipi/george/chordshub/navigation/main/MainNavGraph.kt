@@ -178,9 +178,14 @@ fun MainNavGraph(
             PlaylistDetailScreen(
                 playlistName = name,
                 onBack = { navController.popBackStack() },
-                viewModel = viewModel()
+                viewModel = viewModel(),
+                mainViewModel = mainViewModel,
+                homeViewModel = homeViewModel,
+                userViewModel = userViewModel,
+                navController = navController
             )
         }
+
 
         composable("temp_playlist") {
             TempPlaylistManagerScreen(
