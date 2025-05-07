@@ -342,6 +342,7 @@ fun DetailedSongView(
 
 
 
+
 @Composable
 fun SongInfoPlace(
     title: String,

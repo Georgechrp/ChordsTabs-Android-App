@@ -29,7 +29,7 @@ fun WeeklyStatsScreen(
     }
 
     Column(modifier = Modifier.padding(16.dp)) {
-        // 🔙 Back Button
+        //  Back Button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -39,7 +39,7 @@ fun WeeklyStatsScreen(
         ) {
             Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Back", style = MaterialTheme.typography.bodyLarge)
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))
