@@ -54,6 +54,8 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -67,6 +69,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.unipi.george.chordshub.R
 import com.unipi.george.chordshub.components.CardsView
@@ -77,6 +80,7 @@ import com.unipi.george.chordshub.sharedpreferences.TransposePreferences
 import com.unipi.george.chordshub.utils.QRCodeDialog
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
+import com.unipi.george.chordshub.viewmodels.main.LibraryViewModel
 import com.unipi.george.chordshub.viewmodels.seconds.TempPlaylistViewModel
 import com.unipi.george.chordshub.viewmodels.user.UserViewModel
 import kotlinx.coroutines.delay
@@ -106,6 +110,7 @@ fun DetailedSongView(
     val tempPlaylistViewModel = remember { TempPlaylistViewModel(repository) }
     val userId = AuthRepository.getUserId()
     val songRepo = SongRepository(FirebaseFirestore.getInstance())
+    val showAddToPlaylistDialog = remember { mutableStateOf(false) }
 
 
     LaunchedEffect(isScrolling.value, scrollSpeed.floatValue) {
@@ -240,9 +245,95 @@ fun DetailedSongView(
                         },
                         context = LocalContext.current,
                         songTitle = songState.value?.title ?: "Untitled",
-                        songLyrics = songState.value?.lyrics ?: emptyList()
+                        songLyrics = songState.value?.lyrics ?: emptyList(),
+                        showAddToPlaylistDialog = showAddToPlaylistDialog
+
                     )
                     QRCodeDialog(showQRCodeDialog, songId)
+                    if (showAddToPlaylistDialog.value) {
+                        val libraryViewModel: LibraryViewModel = viewModel()
+                        val playlists by libraryViewModel.playlists.collectAsState()
+                        val selectedPlaylist = remember { mutableStateOf<String?>(null) }
+
+                        AlertDialog(
+                            onDismissRequest = { showAddToPlaylistDialog.value = false },
+                            title = { Text("Επιλογή Playlist") },
+                            text = {
+                                Column {
+                                    if (playlists.isEmpty()) {
+                                        Text("Δεν υπάρχουν playlists.")
+                                    } else {
+                                        playlists.keys.forEach { playlistName ->
+                                            Text(
+                                                text = playlistName,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        selectedPlaylist.value = playlistName
+                                                    }
+                                                    .padding(8.dp),
+                                                color = if (selectedPlaylist.value == playlistName)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    OutlinedButton(
+                                        onClick = {
+                                            // Δημιουργεί νέα playlist με default όνομα
+                                            val baseName = "My Playlist"
+                                            val existingNames = playlists.keys
+                                            var counter = 1
+                                            var newName = "$baseName #$counter"
+                                            while (newName in existingNames) {
+                                                counter++
+                                                newName = "$baseName #$counter"
+                                            }
+
+                                            libraryViewModel.createPlaylist(newName) { success ->
+                                                if (success) {
+                                                    selectedPlaylist.value = newName
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text("➕ Δημιουργία νέας playlist")
+                                    }
+                                }
+
+
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        selectedPlaylist.value?.let { playlist ->
+                                            songState.value?.title?.let { title ->
+                                                libraryViewModel.addSongToPlaylist(playlist, title) {
+                                                    showAddToPlaylistDialog.value = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Text("Προσθήκη")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = {
+                                    showAddToPlaylistDialog.value = false
+                                }) {
+                                    Text("Άκυρο")
+                                }
+                            }
+
+                        )
+
+                    }
+
                 }
             }
         }
@@ -437,8 +528,10 @@ fun OptionsDialog(
     onTransposeChange: () -> Unit,
     context: Context,
     songTitle: String,
-    songLyrics: List<SongLine>
+    songLyrics: List<SongLine>,
+    showAddToPlaylistDialog : MutableState<Boolean>
 ) {
+
     if (showDialog.value) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
@@ -496,6 +589,16 @@ fun OptionsDialog(
                     ) {
                         Text(stringResource(R.string.Save_as_pdf_text))
                     }
+                    Button(
+                        onClick = {
+                            showAddToPlaylistDialog.value = true
+                            showDialog.value = false
+                        },
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text("Add to Playlist")
+                    }
+
                 }
             },
             confirmButton = {

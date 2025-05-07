@@ -88,7 +88,7 @@ fun RecentsScreen(
 
                 else -> {
                     Text(
-                        text = "Τα τελευταία 10 τραγούδια που είδες",
+                        text = "Τα τελευταία τραγούδια που είδες",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
@@ -96,7 +96,7 @@ fun RecentsScreen(
                     LazyColumn(
                         contentPadding = PaddingValues(bottom = 80.dp)
                     )  {
-                        items(recentSongs.asReversed()) { song ->
+                        items(recentSongs) { song ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()

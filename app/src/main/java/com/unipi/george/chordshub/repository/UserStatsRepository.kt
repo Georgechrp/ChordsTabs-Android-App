@@ -106,14 +106,13 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
 
     fun updateWeeklyStats(userId: String, currentDay: String, timeSpent: Int) {
         val weekStart = getCurrentWeekStartDate()
-
-        val userStatsRef = db.collection("users").document(userId)  // Ενημέρωση στο σωστό collection
+        val userStatsRef = db.collection("users").document(userId)
 
         userStatsRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
                 val data = document.data ?: return@addOnSuccessListener
 
-                // Αν η εβδομάδα δεν είναι ίδια, δημιουργούμε νέο πεδίο
+                // Αν αλλάξει η εβδομάδα
                 if (data["weekStart"] != weekStart) {
                     val newWeekStats = mapOf(
                         "weekStart" to weekStart,
@@ -130,11 +129,11 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
                     userStatsRef.set(newWeekStats, SetOptions.merge())
                 }
 
-                // Δημιουργία ή Ενημέρωση του σημερινού χρόνου
-                val updatedDay = mapOf("totalTimeSpent.$currentDay" to timeSpent)
+                // Ενημέρωση nested πεδίου
+                val updatedDay = mapOf("totalTimeSpent" to mapOf(currentDay to timeSpent))
                 userStatsRef.set(updatedDay, SetOptions.merge())
             } else {
-                // Αν δεν υπάρχει καθόλου εγγραφή, δημιουργούμε νέα
+                // Αν δεν υπάρχει το έγγραφο
                 val initialStats = mapOf(
                     "weekStart" to weekStart,
                     "totalTimeSpent" to mapOf(
@@ -144,7 +143,7 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
                         "Thursday" to "-",
                         "Friday" to "-",
                         "Saturday" to "-",
-                        "Sunday" to timeSpent
+                        "Sunday" to if (currentDay == "Sunday") timeSpent else "-"
                     )
                 )
                 userStatsRef.set(initialStats, SetOptions.merge())
@@ -153,4 +152,5 @@ class UserStatsRepository(private val db: FirebaseFirestore) {
             println("❌ Σφάλμα κατά την ενημέρωση: ${e.message}")
         }
     }
+
 }

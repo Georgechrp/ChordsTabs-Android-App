@@ -83,7 +83,7 @@ fun LibraryScreen(navController: NavController, mainViewModel: MainViewModel, on
             FilterRow(
                 selectedFilter = selectedFilter,
                 onFilterChange = { viewModel.fetchFilteredPlaylists(it) },
-                filters = listOf("All", "Artists", "Playlists", "Downloaded")
+                filters = listOf("All", "Downloaded")
             )
             Spacer(modifier = Modifier.height(8.dp))
 

@@ -17,4 +17,5 @@ sealed class AppScreens(val route: String) {
     // ---------- Extras ----------
     data object Settings : AppScreens("Settings")
     data object Recents : AppScreens("Recents")
+    data object Stats: AppScreens("Stats")
 }

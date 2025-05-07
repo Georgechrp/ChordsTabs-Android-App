@@ -27,6 +27,7 @@ import com.unipi.george.chordshub.screens.slidemenu.viewprofile.ProfileScreen
 import com.unipi.george.chordshub.screens.slidemenu.options.RecentsScreen
 import com.unipi.george.chordshub.screens.slidemenu.options.SettingsScreen
 import com.unipi.george.chordshub.screens.slidemenu.options.UploadScreen
+import com.unipi.george.chordshub.screens.slidemenu.options.WeeklyStatsScreen
 import com.unipi.george.chordshub.sharedpreferences.AppSettingsPreferences
 import com.unipi.george.chordshub.viewmodels.main.HomeViewModel
 import com.unipi.george.chordshub.viewmodels.MainViewModel
@@ -51,6 +52,7 @@ import com.unipi.george.chordshub.viewmodels.user.UserViewModel
  */
 
 
+@Suppress("UNREACHABLE_CODE")
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun MainNavGraph(
@@ -193,6 +195,15 @@ fun MainNavGraph(
                 homeViewModel = homeViewModel
             )
         }
+
+        composable(AppScreens.Stats.route) {
+            WeeklyStatsScreen(
+                userId = AuthRepository.getUserId() ?: return@composable,
+                navController = navController
+            )
+        }
+
+
 
     }
 

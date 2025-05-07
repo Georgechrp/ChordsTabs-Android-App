@@ -23,6 +23,7 @@ import com.unipi.george.chordshub.viewmodels.MainViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -161,6 +162,13 @@ fun ProfileMenuContent(
                 icon = Icons.Filled.Settings,
                 text = stringResource(R.string.settings_text),
                 route = AppScreens.Settings.route,
+                mainViewModel = mainViewModel,
+                navController = navController
+            )
+            MenuItem(
+                icon = Icons.Filled.QueryStats,
+                text = "Stats",
+                route = AppScreens.Stats.route,
                 mainViewModel = mainViewModel,
                 navController = navController
             )
